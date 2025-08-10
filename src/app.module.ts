@@ -11,7 +11,6 @@ import { CategoriesModule } from './categories/categories.module';
 import { InventoryModule } from './inventory/inventory.module';
 import { DatabaseModule } from './database/database.module';
 import { createTypeOrmConfig } from './database/database.config';
-import { HealthController } from './health.controller';
 
 /**
  * Main Application Module
@@ -38,7 +37,7 @@ import { HealthController } from './health.controller';
     CategoriesModule,
     InventoryModule,
   ],
-  controllers: [HealthController],
+  controllers: [],
   providers: [],
 })
 export class AppModule {}
