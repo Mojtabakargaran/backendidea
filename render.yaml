@@ -1,0 +1,33 @@
+services:
+  # Backend API Service  
+  - type: web
+    name: samanin-backend-api
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_EXPIRY
+        value: 24h
+      - key: API_PREFIX
+        value: api
+      - key: BCRYPT_SALT_ROUNDS
+        value: 12
+      - key: EMAIL_VERIFICATION_EXPIRY
+        value: 24h
+      - key: PASSWORD_RESET_EXPIRY
+        value: 1h
+      - key: SMTP_HOST
+        value: smtp.gmail.com
+      - key: SMTP_PORT
+        value: 587
+
+# PostgreSQL Database Setup:
+# Create a PostgreSQL database separately in Render dashboard, then add these 
+# environment variables to the web service:
+# - DB_HOST, DB_PORT, DB_USERNAME, DB_PASSWORD, DB_DATABASE
+# - SMTP_USER, SMTP_PASS, EMAIL_FROM, FRONTEND_URL

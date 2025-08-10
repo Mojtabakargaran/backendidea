@@ -23,8 +23,11 @@ async function bootstrap() {
       'http://localhost:3001', // Frontend development
       'http://localhost:3000', // Alternative frontend port
       configService.get('FRONTEND_URL'),
+      // Add your production frontend domain here
     ].filter(Boolean),
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Cookie'],
   });
 
   // Global API prefix
@@ -79,8 +82,8 @@ async function bootstrap() {
   await seederService.runSeeders();
 
   // Start the server
-  const port = configService.get('PORT') || 3000;
-  await app.listen(port);
+  const port = process.env.PORT || configService.get('PORT') || 3000;
+  await app.listen(port, '0.0.0.0');
 
   console.log(`🚀 Samanin Backend is running on: http://localhost:${port}`);
   console.log(`📚 API Documentation: http://localhost:${port}/api/docs`);
