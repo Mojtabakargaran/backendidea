@@ -22,6 +22,8 @@ async function bootstrap() {
     origin: [
       'http://localhost:3001', // Frontend development
       'http://localhost:3000', // Alternative frontend port
+      'http://46.249.100.10:3001', // External IP frontend
+      'http://46.249.100.10:3000', // External IP alternative frontend port
       configService.get('FRONTEND_URL'),
     ].filter(Boolean),
     credentials: true,
