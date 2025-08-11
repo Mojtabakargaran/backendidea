@@ -18,7 +18,7 @@ class SampleDataInserter {
       host: process.env.DB_HOST || 'localhost',
       port: parseInt(process.env.DB_PORT || '5432'),
       username: process.env.DB_USERNAME || 'postgres',
-      password: process.env.DB_PASSWORD || 'kargaran1367',
+      password: process.env.DB_PASSWORD || (() => { throw new Error('DB_PASSWORD environment variable is required') })(),
       database: process.env.DB_DATABASE || 'samanin_dev',
       // Use empty entities array since we're using raw SQL
       entities: [],
