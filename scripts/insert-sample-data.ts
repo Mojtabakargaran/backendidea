@@ -9,6 +9,8 @@ import { Tenant } from '../src/entities/tenant.entity';
 import { User } from '../src/entities/user.entity';
 import { Role } from '../src/entities/role.entity';
 import { UserRole } from '../src/entities/user-role.entity';
+import { Permission } from '../src/entities/permission.entity';
+import { RolePermission } from '../src/entities/role-permission.entity';
 import { Category } from '../src/entities/category.entity';
 import { InventoryItem } from '../src/entities/inventory-item.entity';
 
@@ -43,7 +45,7 @@ class SampleDataInserter {
       DB_HOST: process.env.DB_HOST || 'localhost',
       DB_PORT: process.env.DB_PORT || '5432',
       DB_USERNAME: process.env.DB_USERNAME || 'postgres',
-      DB_PASSWORD: process.env.DB_PASSWORD || 'kargaran1367',
+      DB_PASSWORD: process.env.DB_PASSWORD || (() => { throw new Error('DB_PASSWORD environment variable is required') })(),
       DB_DATABASE: process.env.DB_DATABASE || 'samanin_dev',
       NODE_ENV: process.env.NODE_ENV || 'development',
     });
@@ -83,26 +85,41 @@ class SampleDataInserter {
     
     const tenantRepo = this.dataSource.getRepository(Tenant);
 
-    // Persian tenant
-    const persianTenant = tenantRepo.create({
-      companyName: 'شرکت اجاره پارس',
-      language: Language.PERSIAN,
-      locale: Locale.IRAN,
-      status: TenantStatus.ACTIVE,
+    // Check if Persian tenant already exists
+    let persianTenant = await tenantRepo.findOne({
+      where: { companyName: 'شرکت اجاره پارس' }
     });
-
-    // Arabic tenant
-    const arabicTenant = tenantRepo.create({
-      companyName: 'شركة الإمارات للإيجار',
-      language: Language.ARABIC,
-      locale: Locale.UAE,
-      status: TenantStatus.ACTIVE,
-    });
-
-    await tenantRepo.save([persianTenant, arabicTenant]);
     
-    console.log(`✅ Persian tenant created: ${persianTenant.companyName}`);
-    console.log(`✅ Arabic tenant created: ${arabicTenant.companyName}`);
+    if (!persianTenant) {
+      persianTenant = tenantRepo.create({
+        companyName: 'شرکت اجاره پارس',
+        language: Language.PERSIAN,
+        locale: Locale.IRAN,
+        status: TenantStatus.ACTIVE,
+      });
+      await tenantRepo.save(persianTenant);
+      console.log(`✅ Persian tenant created: ${persianTenant.companyName}`);
+    } else {
+      console.log(`⚠️  Persian tenant already exists: ${persianTenant.companyName}`);
+    }
+
+    // Check if Arabic tenant already exists
+    let arabicTenant = await tenantRepo.findOne({
+      where: { companyName: 'شركة الإمارات للإيجار' }
+    });
+    
+    if (!arabicTenant) {
+      arabicTenant = tenantRepo.create({
+        companyName: 'شركة الإمارات للإيجار',
+        language: Language.ARABIC,
+        locale: Locale.UAE,
+        status: TenantStatus.ACTIVE,
+      });
+      await tenantRepo.save(arabicTenant);
+      console.log(`✅ Arabic tenant created: ${arabicTenant.companyName}`);
+    } else {
+      console.log(`⚠️  Arabic tenant already exists: ${arabicTenant.companyName}`);
+    }
     
     return { persian: persianTenant, arabic: arabicTenant };
   }
@@ -117,18 +134,32 @@ class SampleDataInserter {
     
     const roleNames = Object.values(RoleName);
     const roles: Role[] = [];
+    const newRoles: Role[] = [];
     
     for (const roleName of roleNames) {
-      const role = roleRepo.create({
-        name: roleName,
-        description: this.getRoleDescription(roleName),
-      });
-      roles.push(role);
+      // Check if role already exists
+      const existingRole = await roleRepo.findOne({ where: { name: roleName } });
+      
+      if (existingRole) {
+        console.log(`⚠️  Role already exists: ${roleName}`);
+        roles.push(existingRole);
+      } else {
+        const role = roleRepo.create({
+          name: roleName,
+          description: this.getRoleDescription(roleName),
+        });
+        newRoles.push(role);
+        roles.push(role);
+      }
     }
     
-    await roleRepo.save(roles);
+    if (newRoles.length > 0) {
+      await roleRepo.save(newRoles);
+      console.log(`✅ Created ${newRoles.length} new roles`);
+    } else {
+      console.log('✅ All roles already exist, skipping creation');
+    }
     
-    console.log(`✅ Created ${roles.length} default roles`);
     return roles;
   }
 
@@ -196,6 +227,16 @@ class SampleDataInserter {
     const allUsers = [...persianUsers, ...arabicUsers];
     
     for (const userData of allUsers) {
+      // Check if user already exists
+      const existingUser = await userRepo.findOne({ 
+        where: { email: userData.email } 
+      });
+      
+      if (existingUser) {
+        console.log(`⚠️  User already exists: ${userData.fullName} (${userData.email})`);
+        continue;
+      }
+      
       // Create user
       const user = userRepo.create({
         tenantId: userData.tenant.id,
@@ -257,28 +298,53 @@ class SampleDataInserter {
 
     // Create Persian categories
     for (const catData of persianCategoryData) {
-      const category = categoryRepo.create({
-        tenantId: tenants.persian.id,
-        name: catData.name,
-        description: catData.description,
+      // Check if category already exists for this tenant
+      const existingCategory = await categoryRepo.findOne({
+        where: { 
+          tenantId: tenants.persian.id,
+          name: catData.name 
+        }
       });
-      persianCategories.push(category);
+      
+      if (existingCategory) {
+        console.log(`⚠️  Persian category already exists: ${catData.name}`);
+        persianCategories.push(existingCategory);
+      } else {
+        const category = categoryRepo.create({
+          tenantId: tenants.persian.id,
+          name: catData.name,
+          description: catData.description,
+        });
+        await categoryRepo.save(category);
+        persianCategories.push(category);
+        console.log(`✅ Created Persian category: ${catData.name}`);
+      }
     }
 
     // Create Arabic categories
     for (const catData of arabicCategoryData) {
-      const category = categoryRepo.create({
-        tenantId: tenants.arabic.id,
-        name: catData.name,
-        description: catData.description,
+      // Check if category already exists for this tenant
+      const existingCategory = await categoryRepo.findOne({
+        where: { 
+          tenantId: tenants.arabic.id,
+          name: catData.name 
+        }
       });
-      arabicCategories.push(category);
+      
+      if (existingCategory) {
+        console.log(`⚠️  Arabic category already exists: ${catData.name}`);
+        arabicCategories.push(existingCategory);
+      } else {
+        const category = categoryRepo.create({
+          tenantId: tenants.arabic.id,
+          name: catData.name,
+          description: catData.description,
+        });
+        await categoryRepo.save(category);
+        arabicCategories.push(category);
+        console.log(`✅ Created Arabic category: ${catData.name}`);
+      }
     }
-
-    await categoryRepo.save([...persianCategories, ...arabicCategories]);
-    
-    console.log(`✅ Created ${persianCategories.length} Persian categories`);
-    console.log(`✅ Created ${arabicCategories.length} Arabic categories`);
     
     return { persian: persianCategories, arabic: arabicCategories };
   }
@@ -374,6 +440,19 @@ class SampleDataInserter {
         continue;
       }
 
+      // Check if inventory item already exists
+      const existingItem = await inventoryRepo.findOne({
+        where: { 
+          name: itemData.name,
+          tenant_id: itemData.category.tenantId
+        }
+      });
+      
+      if (existingItem) {
+        console.log(`⚠️  Inventory item already exists: ${itemData.name}`);
+        continue;
+      }
+
       const inventoryItem = new InventoryItem();
       inventoryItem.name = itemData.name;
       inventoryItem.description = itemData.description;
@@ -396,6 +475,160 @@ class SampleDataInserter {
       await inventoryRepo.save(inventoryItem);
       console.log(`✅ Inventory item created: ${inventoryItem.name}`);
     }
+  }
+
+  /**
+   * Seed role-permission relationships for specific tenants
+   * Replicates the logic from DatabaseSeederService.seedTenantRolePermissions
+   */
+  async seedTenantRolePermissions(tenantId: string): Promise<void> {
+    console.log(`🔐 Seeding role-permission relationships for tenant: ${tenantId}...`);
+
+    const roleRepo = this.dataSource.getRepository(Role);
+    const permissionRepo = this.dataSource.getRepository(Permission);
+    const rolePermissionRepo = this.dataSource.getRepository(RolePermission);
+
+    // Check if permissions exist (should be seeded during app startup)
+    const permissions = await permissionRepo.find();
+    if (permissions.length === 0) {
+      console.warn('⚠️  No permissions found in database!');
+      console.warn('⚠️  Run: npm run start:dev (wait for startup to complete, then stop)');
+      console.warn('⚠️  Then re-run this script to populate role-permission relationships.');
+      return;
+    }
+
+    // Define role-permission matrix (same as DatabaseSeederService)
+    const rolePermissionMatrix = {
+      [RoleName.TENANT_OWNER]: [
+        // Full access to all tenant features
+        'users:create', 'users:read', 'users:update', 'users:delete', 'users:manage', 'users:export', 'users:import',
+        'roles:create', 'roles:read', 'roles:update', 'roles:manage',
+        'permissions:read', 'permissions:manage',
+        'tenants:create', 'tenants:read', 'tenants:update', 'tenants:delete', 'tenants:manage',
+        'audit:read', 'audit:export',
+        'dashboard:read',
+        'sessions:read', 'sessions:delete', 'sessions:manage',
+        'profile:read', 'profile:update',
+        'system:read', 'system:update', 'system:manage',
+        'categories:create', 'categories:read', 'categories:update', 'categories:delete', 'categories:manage',
+        'inventory:create', 'inventory:read', 'inventory:update', 'inventory:delete', 'inventory:manage', 'inventory:export', 'inventory:import',
+      ],
+      [RoleName.ADMIN]: [
+        // Administrative access excluding Tenant Owner functions
+        'users:create', 'users:read', 'users:update', 'users:delete', 'users:manage', 'users:export',
+        'roles:read', 'roles:update', 'roles:manage',
+        'permissions:read',
+        'tenants:read', 'tenants:update',
+        'audit:read', 'audit:export',
+        'dashboard:read',
+        'sessions:read', 'sessions:delete', 'sessions:manage',
+        'profile:read', 'profile:update',
+        'system:read', 'system:update',
+        'categories:create', 'categories:read', 'categories:update', 'categories:delete', 'categories:manage',
+        'inventory:create', 'inventory:read', 'inventory:update', 'inventory:delete', 'inventory:manage', 'inventory:export',
+      ],
+      [RoleName.MANAGER]: [
+        // Operational access with limited administrative capabilities
+        'users:create', 'users:read', 'users:update', 'users:export',
+        'roles:read',
+        'permissions:read',
+        'tenants:read',
+        'audit:read',
+        'dashboard:read',
+        'sessions:read', 'sessions:delete',
+        'profile:read', 'profile:update',
+        'system:read',
+        'categories:create', 'categories:read', 'categories:update', 'categories:delete',
+        'inventory:create', 'inventory:read', 'inventory:update', 'inventory:delete', 'inventory:export',
+      ],
+      [RoleName.EMPLOYEE]: [
+        // Standard operational access without administrative functions
+        'users:read',
+        'roles:read',
+        'permissions:read',
+        'tenants:read',
+        'dashboard:read',
+        'sessions:read',
+        'profile:read', 'profile:update',
+        'inventory:read', 'inventory:update',
+      ],
+      [RoleName.STAFF]: [
+        // Basic operational access with task-specific permissions
+        'users:read',
+        'dashboard:read',
+        'sessions:read',
+        'profile:read', 'profile:update',
+        'inventory:read',
+      ],
+    };
+
+    // Get all roles and permissions from database
+    const roles = await roleRepo.find();
+
+    // Create lookup maps
+    const roleMap = new Map(roles.map(role => [role.name, role]));
+    const permissionMap = new Map(permissions.map(permission => [permission.name, permission]));
+
+    let grantedCount = 0;
+    let existingCount = 0;
+    let missingPermissions = new Set<string>();
+
+    // Assign permissions to roles for this specific tenant
+    for (const [roleName, permissionNames] of Object.entries(rolePermissionMatrix)) {
+      const role = roleMap.get(roleName as RoleName);
+      if (!role) {
+        console.warn(`⚠️  Role not found: ${roleName}`);
+        continue;
+      }
+
+      for (const permissionName of permissionNames) {
+        const permission = permissionMap.get(permissionName);
+        if (!permission) {
+          missingPermissions.add(permissionName);
+          continue;
+        }
+
+        // Check if role-permission relationship already exists for this tenant
+        const existingRolePermission = await rolePermissionRepo.findOne({
+          where: { 
+            roleId: role.id, 
+            permissionId: permission.id,
+            tenantId: tenantId
+          },
+        });
+
+        if (!existingRolePermission) {
+          const rolePermission = rolePermissionRepo.create({
+            roleId: role.id,
+            permissionId: permission.id,
+            tenantId: tenantId,
+            isGranted: true,
+          });
+
+          await rolePermissionRepo.save(rolePermission);
+          grantedCount++;
+        } else {
+          // Update existing relationship to ensure it's granted
+          if (!existingRolePermission.isGranted) {
+            existingRolePermission.isGranted = true;
+            await rolePermissionRepo.save(existingRolePermission);
+            grantedCount++;
+          } else {
+            existingCount++;
+          }
+        }
+      }
+    }
+
+    if (missingPermissions.size > 0) {
+      console.warn(`⚠️  Missing permissions (${missingPermissions.size}):`, Array.from(missingPermissions).join(', '));
+      console.warn(`⚠️  Run: npm run start:dev (wait for startup to complete, then stop)`);
+      console.warn(`⚠️  Then re-run this script to populate missing permissions.`);
+    }
+
+    console.log(`✅ Role-permission relationships for tenant ${tenantId}:`);
+    console.log(`   - ${grantedCount} new relationships granted`);
+    console.log(`   - ${existingCount} existing relationships found`);
   }
 
   /**
@@ -430,6 +663,10 @@ class SampleDataInserter {
       const categories = await this.insertSampleCategories(tenants);
       await this.insertSampleInventoryItems(tenants, categories);
       
+      // Seed role-permission relationships for both tenants
+      await this.seedTenantRolePermissions(tenants.persian.id);
+      await this.seedTenantRolePermissions(tenants.arabic.id);
+      
       console.log('=====================================');
       console.log('✅ Sample data insertion completed successfully!');
       console.log('');
@@ -439,6 +676,7 @@ class SampleDataInserter {
       console.log('  - 6 Users (3 per tenant)');
       console.log('  - 12 Categories (6 per tenant)');
       console.log('  - 8 Inventory Items (4 per tenant)');
+      console.log('  - Role-Permission relationships seeded for both tenants');
       console.log('');
       console.log('🔐 Default user credentials:');
       console.log('  Password for all users: SamplePass123!');
