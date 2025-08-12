@@ -750,15 +750,15 @@ class SampleDataInserter {
       console.log('');
       console.log('📝 Persian Tenant:');
       console.log('  - Company: شرکت اجاره پارس');
-      console.log('  - Owner: ali.ahmadi@parsirent.com');
-      console.log('  - Manager: zahra.mohammadi@parsirent.com');
-      console.log('  - Employee: hassan.rezaei@parsirent.com');
+      console.log('  - Owner: ali.ahmadi@parsi.com');
+      console.log('  - Manager: zahra.mohammadi@parsi.com');
+      console.log('  - Employee: hassan.rezaei@parsi.com');
       console.log('');
       console.log('📝 Arabic Tenant:');
       console.log('  - Company: شركة الإمارات للإيجار');
-      console.log('  - Owner: ahmed.alsaadi@emiratesrent.ae');
-      console.log('  - Admin: fatima.alzahra@emiratesrent.ae');
-      console.log('  - Staff: mohamed.alnoor@emiratesrent.ae');
+      console.log('  - Owner: ahmed.alsaadi@emirates.ae');
+      console.log('  - Admin: fatima.alzahra@emirates.ae');
+      console.log('  - Staff: mohamed.alnoor@emirates.ae');
       
     } catch (error) {
       console.error('❌ Error during sample data insertion:', error);

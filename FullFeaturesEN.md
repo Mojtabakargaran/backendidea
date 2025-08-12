@@ -212,7 +212,6 @@ ai_metadata:
 - Role Permission Retrieval (GET /api/roles/{roleId}/permissions for viewing role-specific permissions)
 - Role Permission Assignment (PUT /api/roles/{roleId}/permissions for updating role permission mappings)
 - Real-time Permission Checking (GET /api/permissions/check for validating user permissions)
-- Permission Audit Trail (GET /api/permissions/audit for tracking all permission check activities)
 - Resource-Action Permission Model (Granular permissions based on resource and action combinations)
 - Role-Based Access Control (Permission inheritance and enforcement based on user roles)
 - Tenant Context Isolation (Permission checks and assignments isolated by tenant scope)
