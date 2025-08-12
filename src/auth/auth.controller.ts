@@ -336,14 +336,22 @@ export class AuthController {
       ? 30 * 24 * 60 * 60 * 1000 // 30 days
       : 8 * 60 * 60 * 1000; // 8 hours
 
+    // Debug: Log environment variables
+    console.log('Cookie Environment Variables:', {
+      COOKIE_SECURE: process.env.COOKIE_SECURE,
+      COOKIE_SAME_SITE: process.env.COOKIE_SAME_SITE,
+      COOKIE_DOMAIN: process.env.COOKIE_DOMAIN,
+      NODE_ENV: process.env.NODE_ENV
+    });
+
     // Set session cookie for frontend use
     res.cookie('session', result.data.sessionToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+      secure: process.env.COOKIE_SECURE === 'true', // Use explicit environment variable instead of NODE_ENV
+      sameSite: process.env.COOKIE_SAME_SITE as 'strict' | 'lax' | 'none' || 'lax', // Configurable sameSite
       maxAge: cookieMaxAge,
       path: '/',
-      domain: process.env.NODE_ENV === 'production' ? undefined : 'localhost',
+      domain: process.env.COOKIE_DOMAIN || undefined, // Explicit domain configuration
     });
 
     return result;
@@ -392,14 +400,30 @@ export class AuthController {
   })
   async logout(
     @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
     @Headers('accept-language') acceptLanguage?: string,
   ): Promise<LogoutResponseDto> {
-    // Extract session token from Authorization header or cookies
-    // This is a simplified implementation - in production, use proper authentication guards
-    const authHeader = req.headers.authorization;
-    const sessionToken = authHeader?.replace('Bearer ', '') || 'unknown';
+    // Extract session token from cookies (consistent with session guard)
+    const sessionToken = req.cookies?.session;
 
-    return await this.authService.logout(sessionToken, acceptLanguage);
+    if (!sessionToken) {
+      // If no session token, still return success for security
+      const result = await this.authService.logout('unknown', acceptLanguage);
+      return result;
+    }
+
+    const result = await this.authService.logout(sessionToken, acceptLanguage);
+
+    // Clear session cookie
+    res.clearCookie('session', {
+      httpOnly: true,
+      secure: process.env.COOKIE_SECURE === 'true',
+      sameSite: process.env.COOKIE_SAME_SITE as 'strict' | 'lax' | 'none' || 'lax',
+      path: '/',
+      domain: process.env.COOKIE_DOMAIN || undefined,
+    });
+
+    return result;
   }
 
   /**
