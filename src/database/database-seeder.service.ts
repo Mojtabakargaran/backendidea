@@ -4,7 +4,9 @@ import { Repository } from 'typeorm';
 import { Role } from '@/entities/role.entity';
 import { Permission } from '@/entities/permission.entity';
 import { RolePermission } from '@/entities/role-permission.entity';
-import { RoleName, PermissionAction } from '@/common/enums';
+import { Category } from '@/entities/category.entity';
+import { InventoryItem } from '@/entities/inventory-item.entity';
+import { RoleName, PermissionAction, Language, ItemType, AvailabilityStatus, InventoryItemStatus } from '@/common/enums';
 
 /**
  * Database Seeder Service
@@ -22,6 +24,10 @@ export class DatabaseSeederService {
     private permissionRepository: Repository<Permission>,
     @InjectRepository(RolePermission)
     private rolePermissionRepository: Repository<RolePermission>,
+    @InjectRepository(Category)
+    private categoryRepository: Repository<Category>,
+    @InjectRepository(InventoryItem)
+    private inventoryItemRepository: Repository<InventoryItem>,
   ) {}
 
   /**
@@ -418,5 +424,195 @@ export class DatabaseSeederService {
     this.logger.log('Legacy seeding method - role-permission relationships are now tenant-specific');
     this.logger.log('Use seedTenantRolePermissions(tenantId) for new tenants');
     this.logger.log('Skipping global role-permission seeding');
+  }
+
+  /**
+   * Seed sample categories for new tenant
+   */
+  async seedSampleCategories(tenantId: string, language: Language): Promise<Category[]> {
+    this.logger.log(`Seeding sample categories for tenant: ${tenantId}, language: ${language}`);
+
+    const categoryData = language === Language.PERSIAN ? {
+      categories: [
+        { name: 'الکترونیک', description: 'تجهیزات الکترونیک و دیجیتال' },
+        { name: 'مبلمان', description: 'میز، صندلی و دیگر مبلمان اداری' },
+        { name: 'ابزار کار', description: 'ابزارآلات و تجهیزات کاری' },
+        { name: 'وسایل نقلیه', description: 'خودرو، موتورسیکلت و دوچرخه' },
+        { name: 'تجهیزات ورزشی', description: 'وسایل ورزشی و تفریحی' },
+      ]
+    } : language === Language.ARABIC ? {
+      categories: [
+        { name: 'الإلكترونيات', description: 'الأجهزة الإلكترونية والرقمية' },
+        { name: 'الأثاث', description: 'الطاولات والكراسي وأثاث المكاتب الأخرى' },
+        { name: 'أدوات العمل', description: 'الأدوات والمعدات المهنية' },
+        { name: 'المركبات', description: 'السيارات والدراجات النارية والدراجات الهوائية' },
+        { name: 'المعدات الرياضية', description: 'المعدات الرياضية والترفيهية' },
+      ]
+    } : {
+      // Default English fallback
+      categories: [
+        { name: 'Electronics', description: 'Electronic and digital equipment' },
+        { name: 'Furniture', description: 'Tables, chairs, and other office furniture' },
+        { name: 'Work Tools', description: 'Professional tools and equipment' },
+        { name: 'Vehicles', description: 'Cars, motorcycles, and bicycles' },
+        { name: 'Sports Equipment', description: 'Sports and recreational equipment' },
+      ]
+    };
+
+    const createdCategories: Category[] = [];
+
+    for (const catData of categoryData.categories) {
+      // Check if category already exists
+      const existingCategory = await this.categoryRepository.findOne({
+        where: { tenantId: tenantId, name: catData.name },
+      });
+
+      if (!existingCategory) {
+        const category = this.categoryRepository.create({
+          tenantId: tenantId,
+          name: catData.name,
+          description: catData.description,
+        });
+
+        const savedCategory = await this.categoryRepository.save(category);
+        createdCategories.push(savedCategory);
+        this.logger.log(`Created category: ${catData.name} for tenant ${tenantId}`);
+      } else {
+        createdCategories.push(existingCategory);
+        this.logger.log(`Category already exists: ${catData.name} for tenant ${tenantId}`);
+      }
+    }
+
+    return createdCategories;
+  }
+
+  /**
+   * Seed sample inventory items for new tenant
+   */
+  async seedSampleInventoryItems(tenantId: string, language: Language, categories: Category[]): Promise<void> {
+    this.logger.log(`Seeding sample inventory items for tenant: ${tenantId}, language: ${language}`);
+
+    const inventoryData = language === Language.PERSIAN ? {
+      items: [
+        // Electronics Category
+        { name: 'لپتاپ دل XPS 13', description: 'لپتاپ قابل حمل با نمایشگر 13 اینچی', categoryIndex: 0, itemType: ItemType.SERIALIZED, serialNumber: 'LAPTOP001', availabilityStatus: AvailabilityStatus.RENTED, status: InventoryItemStatus.ARCHIVED },
+        { name: 'پرینتر لیزری HP', description: 'پرینتر لیزری رنگی برای اداره', categoryIndex: 0, itemType: ItemType.SERIALIZED, serialNumber: 'PRINTER001', availabilityStatus: AvailabilityStatus.AVAILABLE, status: InventoryItemStatus.ACTIVE },
+        // Furniture Category  
+        { name: 'میز اداری چوبی', description: 'میز اداری با کشو', categoryIndex: 1, itemType: ItemType.NON_SERIALIZED, quantity: 10, availabilityStatus: AvailabilityStatus.AVAILABLE, status: InventoryItemStatus.ACTIVE, allocatedQuantity: 3, quantityUnit: 'عدد' },
+        { name: 'صندلی اداری', description: 'صندلی اداری با چرخ', categoryIndex: 1, itemType: ItemType.NON_SERIALIZED, quantity: 15, availabilityStatus: AvailabilityStatus.AVAILABLE, status: InventoryItemStatus.ACTIVE, allocatedQuantity: 5, quantityUnit: 'عدد' },
+        { name: 'کتابخانه فلزی', description: 'قفسه کتاب فلزی 5 طبقه', categoryIndex: 1, itemType: ItemType.SERIALIZED, serialNumber: 'SHELF001', availabilityStatus: AvailabilityStatus.MAINTENANCE, status: InventoryItemStatus.ACTIVE },
+        // Work Tools Category
+        { name: 'دریل برقی', description: 'دریل برقی پیشرفته', categoryIndex: 2, itemType: ItemType.SERIALIZED, serialNumber: 'DRILL001', availabilityStatus: AvailabilityStatus.AVAILABLE, status: InventoryItemStatus.ACTIVE },
+        { name: 'جعبه ابزار', description: 'جعبه ابزار کامل', categoryIndex: 2, itemType: ItemType.NON_SERIALIZED, quantity: 5, availabilityStatus: AvailabilityStatus.AVAILABLE, status: InventoryItemStatus.ACTIVE, allocatedQuantity: 1, quantityUnit: 'ست' },
+        // Vehicles Category
+        { name: 'دوچرخه کوهستان', description: 'دوچرخه کوهستان 21 دنده', categoryIndex: 3, itemType: ItemType.SERIALIZED, serialNumber: 'BIKE001', availabilityStatus: AvailabilityStatus.DAMAGED, status: InventoryItemStatus.ACTIVE },
+        { name: 'اسکوتر برقی', description: 'اسکوتر برقی قابل حمل', categoryIndex: 3, itemType: ItemType.SERIALIZED, serialNumber: 'SCOOTER001', availabilityStatus: AvailabilityStatus.AVAILABLE, status: InventoryItemStatus.ACTIVE },
+        // Sports Equipment Category
+        { name: 'توپ فوتبال', description: 'توپ فوتبال حرفه‌ای', categoryIndex: 4, itemType: ItemType.NON_SERIALIZED, quantity: 8, availabilityStatus: AvailabilityStatus.AVAILABLE, status: InventoryItemStatus.ACTIVE, allocatedQuantity: 2, quantityUnit: 'عدد' },
+        { name: 'راکت تنیس', description: 'راکت تنیس کربن', categoryIndex: 4, itemType: ItemType.SERIALIZED, serialNumber: 'RACKET001', availabilityStatus: AvailabilityStatus.AVAILABLE, status: InventoryItemStatus.INACTIVE },
+        { name: 'دمبل قابل تنظیم', description: 'دمبل با وزن قابل تنظیم', categoryIndex: 4, itemType: ItemType.NON_SERIALIZED, quantity: 3, availabilityStatus: AvailabilityStatus.AVAILABLE, status: InventoryItemStatus.ARCHIVED, allocatedQuantity: 0, quantityUnit: 'جفت' },
+      ]
+    } : language === Language.ARABIC ? {
+      items: [
+        // Electronics Category
+        { name: 'لابتوب ديل XPS 13', description: 'لابتوب محمول بشاشة 13 بوصة', categoryIndex: 0, itemType: ItemType.SERIALIZED, serialNumber: 'LAPTOP001', availabilityStatus: AvailabilityStatus.RENTED, status: InventoryItemStatus.ARCHIVED },
+        { name: 'طابعة ليزر HP', description: 'طابعة ليزر ملونة للمكتب', categoryIndex: 0, itemType: ItemType.SERIALIZED, serialNumber: 'PRINTER001', availabilityStatus: AvailabilityStatus.AVAILABLE, status: InventoryItemStatus.ACTIVE },
+        // Furniture Category
+        { name: 'مكتب خشبي', description: 'مكتب مكتبي مع أدراج', categoryIndex: 1, itemType: ItemType.NON_SERIALIZED, quantity: 10, availabilityStatus: AvailabilityStatus.AVAILABLE, status: InventoryItemStatus.ACTIVE, allocatedQuantity: 3, quantityUnit: 'قطعة' },
+        { name: 'كرسي مكتب', description: 'كرسي مكتب بعجلات', categoryIndex: 1, itemType: ItemType.NON_SERIALIZED, quantity: 15, availabilityStatus: AvailabilityStatus.AVAILABLE, status: InventoryItemStatus.ACTIVE, allocatedQuantity: 5, quantityUnit: 'قطعة' },
+        { name: 'خزانة معدنية', description: 'رف كتب معدني 5 طوابق', categoryIndex: 1, itemType: ItemType.SERIALIZED, serialNumber: 'SHELF001', availabilityStatus: AvailabilityStatus.MAINTENANCE, status: InventoryItemStatus.ACTIVE },
+        // Work Tools Category
+        { name: 'مثقاب كهربائي', description: 'مثقاب كهربائي متطور', categoryIndex: 2, itemType: ItemType.SERIALIZED, serialNumber: 'DRILL001', availabilityStatus: AvailabilityStatus.AVAILABLE, status: InventoryItemStatus.ACTIVE },
+        { name: 'صندوق عدة', description: 'صندوق عدة كامل', categoryIndex: 2, itemType: ItemType.NON_SERIALIZED, quantity: 5, availabilityStatus: AvailabilityStatus.AVAILABLE, status: InventoryItemStatus.ACTIVE, allocatedQuantity: 1, quantityUnit: 'مجموعة' },
+        // Vehicles Category
+        { name: 'دراجة جبلية', description: 'دراجة جبلية بـ 21 سرعة', categoryIndex: 3, itemType: ItemType.SERIALIZED, serialNumber: 'BIKE001', availabilityStatus: AvailabilityStatus.DAMAGED, status: InventoryItemStatus.ACTIVE },
+        { name: 'سكوتر كهربائي', description: 'سكوتر كهربائي قابل للطي', categoryIndex: 3, itemType: ItemType.SERIALIZED, serialNumber: 'SCOOTER001', availabilityStatus: AvailabilityStatus.AVAILABLE, status: InventoryItemStatus.ACTIVE },
+        // Sports Equipment Category
+        { name: 'كرة قدم', description: 'كرة قدم احترافية', categoryIndex: 4, itemType: ItemType.NON_SERIALIZED, quantity: 8, availabilityStatus: AvailabilityStatus.AVAILABLE, status: InventoryItemStatus.ACTIVE, allocatedQuantity: 2, quantityUnit: 'قطعة' },
+        { name: 'مضرب تنس', description: 'مضرب تنس من الكربون', categoryIndex: 4, itemType: ItemType.SERIALIZED, serialNumber: 'RACKET001', availabilityStatus: AvailabilityStatus.AVAILABLE, status: InventoryItemStatus.INACTIVE },
+        { name: 'دمبل قابل للتعديل', description: 'دمبل بوزن قابل للتعديل', categoryIndex: 4, itemType: ItemType.NON_SERIALIZED, quantity: 3, availabilityStatus: AvailabilityStatus.AVAILABLE, status: InventoryItemStatus.ARCHIVED, allocatedQuantity: 0, quantityUnit: 'زوج' },
+      ]
+    } : {
+      // Default English fallback
+      items: [
+        // Electronics Category
+        { name: 'Dell XPS 13 Laptop', description: '13-inch portable laptop computer', categoryIndex: 0, itemType: ItemType.SERIALIZED, serialNumber: 'LAPTOP001', availabilityStatus: AvailabilityStatus.RENTED, status: InventoryItemStatus.ARCHIVED },
+        { name: 'HP Laser Printer', description: 'Color laser printer for office use', categoryIndex: 0, itemType: ItemType.SERIALIZED, serialNumber: 'PRINTER001', availabilityStatus: AvailabilityStatus.AVAILABLE, status: InventoryItemStatus.ACTIVE },
+        // Furniture Category
+        { name: 'Wooden Office Desk', description: 'Office desk with drawers', categoryIndex: 1, itemType: ItemType.NON_SERIALIZED, quantity: 10, availabilityStatus: AvailabilityStatus.AVAILABLE, status: InventoryItemStatus.ACTIVE, allocatedQuantity: 3, quantityUnit: 'pieces' },
+        { name: 'Office Chair', description: 'Office chair with wheels', categoryIndex: 1, itemType: ItemType.NON_SERIALIZED, quantity: 15, availabilityStatus: AvailabilityStatus.AVAILABLE, status: InventoryItemStatus.ACTIVE, allocatedQuantity: 5, quantityUnit: 'pieces' },
+        { name: 'Metal Bookshelf', description: '5-tier metal bookshelf', categoryIndex: 1, itemType: ItemType.SERIALIZED, serialNumber: 'SHELF001', availabilityStatus: AvailabilityStatus.MAINTENANCE, status: InventoryItemStatus.ACTIVE },
+        // Work Tools Category
+        { name: 'Electric Drill', description: 'Advanced electric drill', categoryIndex: 2, itemType: ItemType.SERIALIZED, serialNumber: 'DRILL001', availabilityStatus: AvailabilityStatus.AVAILABLE, status: InventoryItemStatus.ACTIVE },
+        { name: 'Tool Box', description: 'Complete tool box set', categoryIndex: 2, itemType: ItemType.NON_SERIALIZED, quantity: 5, availabilityStatus: AvailabilityStatus.AVAILABLE, status: InventoryItemStatus.ACTIVE, allocatedQuantity: 1, quantityUnit: 'sets' },
+        // Vehicles Category
+        { name: 'Mountain Bike', description: '21-speed mountain bicycle', categoryIndex: 3, itemType: ItemType.SERIALIZED, serialNumber: 'BIKE001', availabilityStatus: AvailabilityStatus.DAMAGED, status: InventoryItemStatus.ACTIVE },
+        { name: 'Electric Scooter', description: 'Foldable electric scooter', categoryIndex: 3, itemType: ItemType.SERIALIZED, serialNumber: 'SCOOTER001', availabilityStatus: AvailabilityStatus.AVAILABLE, status: InventoryItemStatus.ACTIVE },
+        // Sports Equipment Category
+        { name: 'Soccer Ball', description: 'Professional soccer ball', categoryIndex: 4, itemType: ItemType.NON_SERIALIZED, quantity: 8, availabilityStatus: AvailabilityStatus.AVAILABLE, status: InventoryItemStatus.ACTIVE, allocatedQuantity: 2, quantityUnit: 'pieces' },
+        { name: 'Tennis Racket', description: 'Carbon fiber tennis racket', categoryIndex: 4, itemType: ItemType.SERIALIZED, serialNumber: 'RACKET001', availabilityStatus: AvailabilityStatus.AVAILABLE, status: InventoryItemStatus.INACTIVE },
+        { name: 'Adjustable Dumbbell', description: 'Adjustable weight dumbbell', categoryIndex: 4, itemType: ItemType.NON_SERIALIZED, quantity: 3, availabilityStatus: AvailabilityStatus.AVAILABLE, status: InventoryItemStatus.ARCHIVED, allocatedQuantity: 0, quantityUnit: 'pairs' },
+      ]
+    };
+
+    for (const itemData of inventoryData.items) {
+      const category = categories[itemData.categoryIndex];
+      if (!category) {
+        this.logger.warn(`Category not found at index ${itemData.categoryIndex}`);
+        continue;
+      }
+
+      // Check if inventory item already exists
+      const existingItem = await this.inventoryItemRepository.findOne({
+        where: { tenant_id: tenantId, name: itemData.name },
+      });
+
+      if (!existingItem) {
+        const inventoryItem = this.inventoryItemRepository.create({
+          name: itemData.name,
+          description: itemData.description,
+          tenant_id: tenantId,
+          category_id: category.id,
+          item_type: itemData.itemType,
+          serial_number: itemData.itemType === ItemType.SERIALIZED ? itemData.serialNumber : undefined,
+          serial_number_source: itemData.itemType === ItemType.SERIALIZED ? 'manual' : undefined,
+          quantity: itemData.itemType === ItemType.NON_SERIALIZED ? itemData.quantity : undefined,
+          allocated_quantity: itemData.allocatedQuantity || 0,
+          quantity_unit: itemData.itemType === ItemType.NON_SERIALIZED ? (itemData.quantityUnit || 'pieces') : undefined,
+          availability_status: itemData.availabilityStatus || AvailabilityStatus.AVAILABLE,
+          status: itemData.status || InventoryItemStatus.ACTIVE,
+          version: 1,
+          has_rental_history: (itemData.availabilityStatus === AvailabilityStatus.RENTED || (itemData.allocatedQuantity && itemData.allocatedQuantity > 0)),
+        } as Partial<InventoryItem>);
+
+        await this.inventoryItemRepository.save(inventoryItem);
+        this.logger.log(`Created inventory item: ${itemData.name} for tenant ${tenantId}`);
+      } else {
+        this.logger.log(`Inventory item already exists: ${itemData.name} for tenant ${tenantId}`);
+      }
+    }
+
+    this.logger.log(`Finished seeding sample inventory items for tenant: ${tenantId}`);
+  }
+
+  /**
+   * Seed sample data for new tenant owner
+   * Creates categories and inventory items based on user language
+   */
+  async seedSampleDataForTenant(tenantId: string, language: Language): Promise<void> {
+    this.logger.log(`Starting sample data seeding for tenant: ${tenantId}, language: ${language}`);
+
+    try {
+      // First, seed the categories
+      const categories = await this.seedSampleCategories(tenantId, language);
+      
+      // Then, seed the inventory items using the created categories
+      await this.seedSampleInventoryItems(tenantId, language, categories);
+
+      this.logger.log(`Successfully completed sample data seeding for tenant: ${tenantId}`);
+    } catch (error) {
+      this.logger.error(`Failed to seed sample data for tenant ${tenantId}`, error);
+      throw error;
+    }
   }
 }

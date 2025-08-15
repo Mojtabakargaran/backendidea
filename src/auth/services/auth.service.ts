@@ -192,7 +192,19 @@ export class AuthService {
       // Don't throw error - registration was successful
     }
 
-    // After permission seeding, send the verification email (Step 12 continued)
+    // After permission seeding, seed sample data for the new tenant
+    try {
+      await this.databaseSeederService.seedSampleDataForTenant(result.tenant.id, result.tenant.language);
+      this.logger.log(`Sample data seeded for tenant: ${result.tenant.id}, language: ${result.tenant.language}`);
+    } catch (sampleDataError) {
+      this.logger.error(
+        'Failed to seed sample data, but registration was successful',
+        sampleDataError,
+      );
+      // Don't throw error - registration was successful
+    }
+
+    // After sample data seeding, send the verification email (Step 12 continued)
     let emailSent = false;
     try {
       // Ensure user has tenant relationship for email language support
