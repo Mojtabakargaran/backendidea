@@ -14,7 +14,8 @@ export class ExportAuditRequestDto {
 
   @ApiPropertyOptional({
     description: 'Filter by specific user ID or username/email',
-    example: '123e4567-e89b-12d3-a456-426614174000 or username or email@example.com',
+    example:
+      '123e4567-e89b-12d3-a456-426614174000 or username or email@example.com',
   })
   @IsOptional()
   @IsString()

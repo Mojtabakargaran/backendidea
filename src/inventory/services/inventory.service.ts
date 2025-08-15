@@ -1,4 +1,10 @@
-import { Injectable, NotFoundException, ConflictException, BadRequestException, UnprocessableEntityException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ConflictException,
+  BadRequestException,
+  UnprocessableEntityException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource, In } from 'typeorm';
 import * as crypto from 'crypto';
@@ -17,10 +23,26 @@ import { ExportInventoryRequestDto } from '../dto/export-inventory-request.dto';
 import { GetStatusHistoryQueryDto } from '../dto/get-status-history-query.dto';
 import { InventoryItemDto } from '../dto/inventory-item.dto';
 import { ItemChangeDto } from '../dto/update-inventory-item-response.dto';
-import { StatusTransitionOptionDto, StatusRestrictionDto } from '../dto/get-status-options-response.dto';
-import { StatusChangeHistoryDto, StatusHistoryPaginationDto } from '../dto/get-status-history-response.dto';
+import {
+  StatusTransitionOptionDto,
+  StatusRestrictionDto,
+} from '../dto/get-status-options-response.dto';
+import {
+  StatusChangeHistoryDto,
+  StatusHistoryPaginationDto,
+} from '../dto/get-status-history-response.dto';
 import { PaginationMeta } from '../dto/list-inventory-items-response.dto';
-import { ItemType, AvailabilityStatus, InventoryItemStatus, StatusChangeType, AuditAction, AuditStatus, ExportFormat, ExportType, ExportStatus } from '../../common/enums';
+import {
+  ItemType,
+  AvailabilityStatus,
+  InventoryItemStatus,
+  StatusChangeType,
+  AuditAction,
+  AuditStatus,
+  ExportFormat,
+  ExportType,
+  ExportStatus,
+} from '../../common/enums';
 import { MessageKeys } from '../../common/message-keys';
 import { I18nService } from '../../i18n/i18n.service';
 
@@ -69,7 +91,9 @@ export class InventoryService {
       });
 
       if (existingItem) {
-        throw new ConflictException({ code: MessageKeys.INVENTORY_NAME_EXISTS });
+        throw new ConflictException({
+          code: MessageKeys.INVENTORY_NAME_EXISTS,
+        });
       }
 
       let serialNumber: string | undefined;
@@ -80,16 +104,27 @@ export class InventoryService {
           serialNumber = await this.generateSerialNumber(tenantId, manager);
         } else if (createDto.serialNumber) {
           // Validate manual serial number uniqueness
-          await this.validateSerialNumberUniqueness(tenantId, createDto.serialNumber, manager);
+          await this.validateSerialNumberUniqueness(
+            tenantId,
+            createDto.serialNumber,
+            manager,
+          );
           serialNumber = createDto.serialNumber;
         } else {
-          throw new BadRequestException({ code: MessageKeys.SERIAL_NUMBER_REQUIRED });
+          throw new BadRequestException({
+            code: MessageKeys.SERIAL_NUMBER_REQUIRED,
+          });
         }
       }
 
       // Validate non-serialized items have quantity
-      if (createDto.itemType === ItemType.NON_SERIALIZED && createDto.quantity === undefined) {
-        throw new BadRequestException({ code: MessageKeys.INVENTORY_QUANTITY_INVALID });
+      if (
+        createDto.itemType === ItemType.NON_SERIALIZED &&
+        createDto.quantity === undefined
+      ) {
+        throw new BadRequestException({
+          code: MessageKeys.INVENTORY_QUANTITY_INVALID,
+        });
       }
 
       // Create inventory item
@@ -115,7 +150,7 @@ export class InventoryService {
         AuditAction.INVENTORY_ITEM_CREATED,
         savedItem.id,
         `Created inventory item: ${savedItem.name}`,
-        { 
+        {
           itemName: savedItem.name,
           itemType: savedItem.item_type,
           serialNumber: savedItem.serial_number,
@@ -149,35 +184,52 @@ export class InventoryService {
 
     // Apply status filter - if status is specified, filter by it; otherwise exclude archived
     if (queryDto.status) {
-      queryBuilder.andWhere('item.status = :status', { status: queryDto.status });
+      queryBuilder.andWhere('item.status = :status', {
+        status: queryDto.status,
+      });
     } else {
       // Default behavior: exclude archived items unless specifically requested
-      queryBuilder.andWhere('item.status != :archivedStatus', { archivedStatus: InventoryItemStatus.ARCHIVED });
+      queryBuilder.andWhere('item.status != :archivedStatus', {
+        archivedStatus: InventoryItemStatus.ARCHIVED,
+      });
     }
 
     // Apply filters
     if (queryDto.search) {
-      queryBuilder.andWhere('item.name ILIKE :search', { search: `%${queryDto.search}%` });
+      queryBuilder.andWhere('item.name ILIKE :search', {
+        search: `%${queryDto.search}%`,
+      });
     }
 
     if (queryDto.categoryId) {
-      queryBuilder.andWhere('item.category_id = :categoryId', { categoryId: queryDto.categoryId });
+      queryBuilder.andWhere('item.category_id = :categoryId', {
+        categoryId: queryDto.categoryId,
+      });
     }
 
     if (queryDto.itemType) {
-      queryBuilder.andWhere('item.item_type = :itemType', { itemType: queryDto.itemType });
+      queryBuilder.andWhere('item.item_type = :itemType', {
+        itemType: queryDto.itemType,
+      });
     }
 
     if (queryDto.availabilityStatus) {
-      queryBuilder.andWhere('item.availability_status = :availabilityStatus', { 
-        availabilityStatus: queryDto.availabilityStatus 
+      queryBuilder.andWhere('item.availability_status = :availabilityStatus', {
+        availabilityStatus: queryDto.availabilityStatus,
       });
     }
 
     // Apply sorting
-    const sortField = queryDto.sortBy === 'name' ? 'item.name' : 
-                     queryDto.sortBy === 'createdAt' ? 'item.created_at' : 'item.updated_at';
-    queryBuilder.orderBy(sortField, queryDto.sortOrder?.toUpperCase() as 'ASC' | 'DESC');
+    const sortField =
+      queryDto.sortBy === 'name'
+        ? 'item.name'
+        : queryDto.sortBy === 'createdAt'
+          ? 'item.created_at'
+          : 'item.updated_at';
+    queryBuilder.orderBy(
+      sortField,
+      queryDto.sortOrder?.toUpperCase() as 'ASC' | 'DESC',
+    );
 
     // Apply pagination
     const offset = (queryDto.page! - 1) * queryDto.limit!;
@@ -194,11 +246,11 @@ export class InventoryService {
         '',
         'Viewed inventory items list',
         {
-          filters: { 
-            search: queryDto.search, 
-            categoryId: queryDto.categoryId, 
-            itemType: queryDto.itemType, 
-            availabilityStatus: queryDto.availabilityStatus 
+          filters: {
+            search: queryDto.search,
+            categoryId: queryDto.categoryId,
+            itemType: queryDto.itemType,
+            availabilityStatus: queryDto.availabilityStatus,
           },
           sorting: { sortBy: queryDto.sortBy, sortOrder: queryDto.sortOrder },
           pagination: { page: queryDto.page, limit: queryDto.limit },
@@ -218,7 +270,7 @@ export class InventoryService {
     };
 
     return {
-      items: items.map(item => this.mapToInventoryItemDto(item)),
+      items: items.map((item) => this.mapToInventoryItemDto(item)),
       meta,
     };
   }
@@ -226,14 +278,20 @@ export class InventoryService {
   /**
    * Get inventory item by ID
    */
-  async getInventoryItem(tenantId: string, itemId: string, userId?: string): Promise<InventoryItemDto> {
+  async getInventoryItem(
+    tenantId: string,
+    itemId: string,
+    userId?: string,
+  ): Promise<InventoryItemDto> {
     const item = await this.inventoryItemRepository.findOne({
       where: { id: itemId, tenant_id: tenantId },
       relations: ['category'],
     });
 
     if (!item) {
-      throw new NotFoundException({ code: MessageKeys.INVENTORY_ITEM_NOT_FOUND });
+      throw new NotFoundException({
+        code: MessageKeys.INVENTORY_ITEM_NOT_FOUND,
+      });
     }
 
     // Create audit log for item viewing if userId is provided
@@ -260,7 +318,10 @@ export class InventoryService {
   /**
    * Validate serial number uniqueness
    */
-  async validateSerialNumber(tenantId: string, serialNumber: string): Promise<{ isUnique: boolean }> {
+  async validateSerialNumber(
+    tenantId: string,
+    serialNumber: string,
+  ): Promise<{ isUnique: boolean }> {
     const existingItem = await this.inventoryItemRepository.findOne({
       where: { tenant_id: tenantId, serial_number: serialNumber },
     });
@@ -273,7 +334,7 @@ export class InventoryService {
    */
   async generateSerialNumber(tenantId: string, manager?: any): Promise<string> {
     const repo = manager || this.dataSource;
-    
+
     // Get or create serial number sequence for tenant
     let sequence = await repo.findOne(SerialNumberSequence, {
       where: { tenant_id: tenantId, is_active: true },
@@ -292,7 +353,7 @@ export class InventoryService {
 
     // Generate serial number
     const serialNumber = sequence.generateSerialNumber();
-    
+
     // Increment sequence
     sequence.incrementSequence();
     await repo.save(SerialNumberSequence, sequence);
@@ -367,8 +428,13 @@ export class InventoryService {
   }> {
     return this.dataSource.transaction(async (manager) => {
       // Validate export request
-      if (exportDto.exportType !== ExportType.FULL_INVENTORY && (!exportDto.itemIds || exportDto.itemIds.length === 0)) {
-        throw new BadRequestException({ code: MessageKeys.EXPORT_INVALID_ITEMS });
+      if (
+        exportDto.exportType !== ExportType.FULL_INVENTORY &&
+        (!exportDto.itemIds || exportDto.itemIds.length === 0)
+      ) {
+        throw new BadRequestException({
+          code: MessageKeys.EXPORT_INVALID_ITEMS,
+        });
       }
 
       let itemIds: string[] = [];
@@ -380,7 +446,7 @@ export class InventoryService {
           where: { tenant_id: tenantId, status: InventoryItemStatus.ACTIVE },
           select: ['id'],
         });
-        itemIds = items.map(item => item.id);
+        itemIds = items.map((item) => item.id);
         recordCount = items.length;
       } else {
         // Validate that all requested items exist and belong to the tenant
@@ -399,7 +465,9 @@ export class InventoryService {
             .getMany();
 
           if (validItems.length !== exportDto.itemIds.length) {
-            throw new BadRequestException({ code: MessageKeys.EXPORT_INVALID_ITEMS });
+            throw new BadRequestException({
+              code: MessageKeys.EXPORT_INVALID_ITEMS,
+            });
           }
 
           itemIds = exportDto.itemIds;
@@ -417,7 +485,9 @@ export class InventoryService {
       expiresAt.setHours(expiresAt.getHours() + 24); // Expire in 24 hours
 
       const estimatedCompletionTime = new Date();
-      estimatedCompletionTime.setMinutes(estimatedCompletionTime.getMinutes() + Math.ceil(recordCount / 100)); // Estimate 1 minute per 100 items
+      estimatedCompletionTime.setMinutes(
+        estimatedCompletionTime.getMinutes() + Math.ceil(recordCount / 100),
+      ); // Estimate 1 minute per 100 items
 
       const inventoryExport = manager.create(InventoryExport, {
         tenant_id: tenantId,
@@ -446,7 +516,8 @@ export class InventoryService {
           exportFormat: exportDto.exportFormat,
           exportType: exportDto.exportType,
           recordCount,
-          itemIds: exportDto.exportType === ExportType.FULL_INVENTORY ? [] : itemIds,
+          itemIds:
+            exportDto.exportType === ExportType.FULL_INVENTORY ? [] : itemIds,
           exportOptions: exportDto.exportOptions,
         },
         manager,
@@ -466,14 +537,17 @@ export class InventoryService {
   /**
    * Download export file
    */
-  async downloadExport(tenantId: string, exportId: string): Promise<{
+  async downloadExport(
+    tenantId: string,
+    exportId: string,
+  ): Promise<{
     content: string;
     contentType: string;
     filename: string;
   }> {
     // Find the export record
     const exportRecord = await this.inventoryExportRepository.findOne({
-      where: { id: exportId, tenant_id: tenantId }
+      where: { id: exportId, tenant_id: tenantId },
     });
 
     if (!exportRecord) {
@@ -488,7 +562,9 @@ export class InventoryService {
     // Get the items to export
     const items = await this.inventoryItemRepository.find({
       where: {
-        id: exportRecord.item_ids?.length ? In(exportRecord.item_ids) : undefined,
+        id: exportRecord.item_ids?.length
+          ? In(exportRecord.item_ids)
+          : undefined,
         tenant_id: tenantId,
       },
       relations: ['category'],
@@ -501,24 +577,39 @@ export class InventoryService {
 
     switch (exportRecord.export_format) {
       case ExportFormat.JSON:
-        content = JSON.stringify(items.map(item => this.mapToInventoryItemDto(item)), null, 2);
+        content = JSON.stringify(
+          items.map((item) => this.mapToInventoryItemDto(item)),
+          null,
+          2,
+        );
         contentType = 'application/json';
         fileExtension = 'json';
         break;
 
       case ExportFormat.CSV:
         // Simple CSV implementation
-        const csvHeaders = ['ID', 'Name', 'Type', 'Category', 'Status', 'Serial Number', 'Quantity'];
-        const csvRows = items.map(item => [
+        const csvHeaders = [
+          'ID',
+          'Name',
+          'Type',
+          'Category',
+          'Status',
+          'Serial Number',
+          'Quantity',
+        ];
+        const csvRows = items.map((item) => [
           item.id,
           `"${item.name}"`,
           item.item_type,
           `"${item.category?.name || 'N/A'}"`,
           item.availability_status,
           item.serial_number || 'N/A',
-          item.quantity?.toString() || 'N/A'
+          item.quantity?.toString() || 'N/A',
         ]);
-        content = [csvHeaders.join(','), ...csvRows.map(row => row.join(','))].join('\n');
+        content = [
+          csvHeaders.join(','),
+          ...csvRows.map((row) => row.join(',')),
+        ].join('\n');
         contentType = 'text/csv';
         fileExtension = 'csv';
         break;
@@ -527,7 +618,11 @@ export class InventoryService {
       case ExportFormat.EXCEL:
       default:
         // For now, return JSON for PDF and Excel until proper libraries are added
-        content = JSON.stringify(items.map(item => this.mapToInventoryItemDto(item)), null, 2);
+        content = JSON.stringify(
+          items.map((item) => this.mapToInventoryItemDto(item)),
+          null,
+          2,
+        );
         contentType = 'application/json';
         fileExtension = 'json';
         break;
@@ -584,7 +679,7 @@ export class InventoryService {
     updateDto: UpdateInventoryItemRequestDto,
     ipAddress?: string,
     userAgent?: string,
-  ): Promise<{item: InventoryItemDto, changes: ItemChangeDto[]}> {
+  ): Promise<{ item: InventoryItemDto; changes: ItemChangeDto[] }> {
     return this.dataSource.transaction(async (manager) => {
       // Find the existing item with current version for optimistic locking
       const existingItem = await manager.findOne(InventoryItem, {
@@ -593,17 +688,19 @@ export class InventoryService {
       });
 
       if (!existingItem) {
-        throw new NotFoundException({ code: MessageKeys.INVENTORY_ITEM_NOT_FOUND });
+        throw new NotFoundException({
+          code: MessageKeys.INVENTORY_ITEM_NOT_FOUND,
+        });
       }
 
       // Check optimistic locking
       if (existingItem.version !== updateDto.version) {
-        throw new ConflictException({ 
+        throw new ConflictException({
           code: MessageKeys.EDIT_CONFLICT,
           details: {
             currentVersion: existingItem.version,
             submittedVersion: updateDto.version,
-          }
+          },
         });
       }
 
@@ -623,13 +720,15 @@ export class InventoryService {
         });
 
         if (existingWithName) {
-          throw new ConflictException({ code: MessageKeys.INVENTORY_NAME_EXISTS });
+          throw new ConflictException({
+            code: MessageKeys.INVENTORY_NAME_EXISTS,
+          });
         }
       }
 
       // Track changes for audit trail
       const changes: ItemChangeDto[] = [];
-      
+
       if (existingItem.name !== updateDto.name) {
         changes.push({
           field: 'name',
@@ -637,7 +736,7 @@ export class InventoryService {
           newValue: updateDto.name,
         });
       }
-      
+
       if (existingItem.description !== updateDto.description) {
         changes.push({
           field: 'description',
@@ -645,7 +744,7 @@ export class InventoryService {
           newValue: updateDto.description || undefined,
         });
       }
-      
+
       if (existingItem.category_id !== updateDto.categoryId) {
         changes.push({
           field: 'categoryId',
@@ -653,7 +752,7 @@ export class InventoryService {
           newValue: updateDto.categoryId,
         });
       }
-      
+
       if (existingItem.status !== updateDto.status) {
         changes.push({
           field: 'status',
@@ -663,7 +762,8 @@ export class InventoryService {
       }
 
       // Update the item
-      await manager.update(InventoryItem, 
+      await manager.update(
+        InventoryItem,
         { id: itemId },
         {
           name: updateDto.name,
@@ -671,7 +771,7 @@ export class InventoryService {
           category_id: updateDto.categoryId,
           status: updateDto.status,
           version: existingItem.version + 1, // Increment version for optimistic locking
-        }
+        },
       );
 
       // Reload with relations
@@ -681,7 +781,9 @@ export class InventoryService {
       });
 
       if (!reloadedItem) {
-        throw new NotFoundException({ code: MessageKeys.INVENTORY_ITEM_NOT_FOUND });
+        throw new NotFoundException({
+          code: MessageKeys.INVENTORY_ITEM_NOT_FOUND,
+        });
       }
 
       // Create audit log entry
@@ -732,51 +834,63 @@ export class InventoryService {
       });
 
       if (!existingItem) {
-        throw new NotFoundException({ code: MessageKeys.INVENTORY_ITEM_NOT_FOUND });
+        throw new NotFoundException({
+          code: MessageKeys.INVENTORY_ITEM_NOT_FOUND,
+        });
       }
 
       // Validate status transition
-      const validTransitions = this.getValidStatusTransitions(existingItem.availability_status);
+      const validTransitions = this.getValidStatusTransitions(
+        existingItem.availability_status,
+      );
       if (!validTransitions.includes(statusDto.newStatus)) {
-        throw new BadRequestException({ 
+        throw new BadRequestException({
           code: MessageKeys.INVENTORY_INVALID_STATUS_TRANSITION,
           details: {
             currentStatus: existingItem.availability_status,
             requestedStatus: statusDto.newStatus,
             validTransitions: validTransitions,
-          }
+          },
         });
       }
 
       // Check if item is currently allocated (placeholder - would check actual rental system)
-      if (existingItem.availability_status === AvailabilityStatus.RENTED && 
-          statusDto.newStatus !== AvailabilityStatus.AVAILABLE) {
-        throw new ConflictException({ 
+      if (
+        existingItem.availability_status === AvailabilityStatus.RENTED &&
+        statusDto.newStatus !== AvailabilityStatus.AVAILABLE
+      ) {
+        throw new ConflictException({
           code: MessageKeys.ITEM_ALLOCATED,
           details: {
             allocationType: 'rental',
             allocationDetails: {
               customerId: 'placeholder-customer-id',
               startDate: new Date().toISOString(),
-              endDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+              endDate: new Date(
+                Date.now() + 7 * 24 * 60 * 60 * 1000,
+              ).toISOString(),
               canOverride: false,
-            }
-          }
+            },
+          },
         });
       }
 
       const previousStatus = existingItem.availability_status;
-      const expectedResolutionDate = statusDto.expectedResolutionDate && statusDto.expectedResolutionDate.trim() !== '' ? 
-        new Date(statusDto.expectedResolutionDate) : undefined;
+      const expectedResolutionDate =
+        statusDto.expectedResolutionDate &&
+        statusDto.expectedResolutionDate.trim() !== ''
+          ? new Date(statusDto.expectedResolutionDate)
+          : undefined;
 
       // Update item status
-      await manager.update(InventoryItem, 
-        { id: itemId }, 
-        { 
+      await manager.update(
+        InventoryItem,
+        { id: itemId },
+        {
           availability_status: statusDto.newStatus,
           last_status_change_reason: statusDto.changeReason,
           expected_resolution_date: expectedResolutionDate || undefined,
-        }
+        },
       );
 
       // Create status change record
@@ -792,7 +906,7 @@ export class InventoryService {
         ip_address: ipAddress,
         user_agent: userAgent,
       });
-      
+
       const statusChange = await manager.save(statusChangeData);
 
       // Create audit log entry
@@ -828,7 +942,10 @@ export class InventoryService {
   /**
    * Get valid status transition options for an inventory item
    */
-  async getStatusOptions(tenantId: string, itemId: string): Promise<{
+  async getStatusOptions(
+    tenantId: string,
+    itemId: string,
+  ): Promise<{
     currentStatus: AvailabilityStatus;
     validTransitions: StatusTransitionOptionDto[];
     restrictions: StatusRestrictionDto[];
@@ -838,7 +955,9 @@ export class InventoryService {
     });
 
     if (!item) {
-      throw new NotFoundException({ code: MessageKeys.INVENTORY_ITEM_NOT_FOUND });
+      throw new NotFoundException({
+        code: MessageKeys.INVENTORY_ITEM_NOT_FOUND,
+      });
     }
 
     const currentStatus = item.availability_status;
@@ -853,12 +972,14 @@ export class InventoryService {
       });
     }
 
-    const transitionOptions: StatusTransitionOptionDto[] = validTransitions.map(status => ({
-      status: status,
-      label: this.getStatusLabel(status),
-      requiresReason: this.statusRequiresReason(status),
-      requiresResolutionDate: this.statusRequiresResolutionDate(status),
-    }));
+    const transitionOptions: StatusTransitionOptionDto[] = validTransitions.map(
+      (status) => ({
+        status: status,
+        label: this.getStatusLabel(status),
+        requiresReason: this.statusRequiresReason(status),
+        requiresResolutionDate: this.statusRequiresResolutionDate(status),
+      }),
+    );
 
     return {
       currentStatus: currentStatus,
@@ -871,9 +992,9 @@ export class InventoryService {
    * Get status change history for an inventory item
    */
   async getStatusHistory(
-    tenantId: string, 
-    itemId: string, 
-    queryDto: GetStatusHistoryQueryDto
+    tenantId: string,
+    itemId: string,
+    queryDto: GetStatusHistoryQueryDto,
   ): Promise<{
     statusChanges: StatusChangeHistoryDto[];
     pagination: StatusHistoryPaginationDto;
@@ -884,7 +1005,9 @@ export class InventoryService {
     });
 
     if (!item) {
-      throw new NotFoundException({ code: MessageKeys.INVENTORY_ITEM_NOT_FOUND });
+      throw new NotFoundException({
+        code: MessageKeys.INVENTORY_ITEM_NOT_FOUND,
+      });
     }
 
     const page = queryDto.page || 1;
@@ -892,29 +1015,32 @@ export class InventoryService {
     const offset = (page - 1) * limit;
 
     // Get status changes with pagination
-    const [statusChanges, totalCount] = await this.inventoryItemStatusChangeRepository.findAndCount({
-      where: { inventory_item_id: itemId, tenant_id: tenantId },
-      relations: ['changedBy'],
-      order: { created_at: 'DESC' },
-      take: limit,
-      skip: offset,
-    });
+    const [statusChanges, totalCount] =
+      await this.inventoryItemStatusChangeRepository.findAndCount({
+        where: { inventory_item_id: itemId, tenant_id: tenantId },
+        relations: ['changedBy'],
+        order: { created_at: 'DESC' },
+        take: limit,
+        skip: offset,
+      });
 
     const totalPages = Math.ceil(totalCount / limit);
 
-    const statusChangeHistory: StatusChangeHistoryDto[] = statusChanges.map(change => ({
-      id: change.id,
-      previousStatus: change.previous_status,
-      newStatus: change.new_status,
-      changeReason: change.change_reason,
-      expectedResolutionDate: change.expected_resolution_date?.toISOString(),
-      changeType: change.change_type,
-      changedBy: {
-        id: change.changedBy.id,
-        fullName: change.changedBy.fullName,
-      },
-      createdAt: change.created_at.toISOString(),
-    }));
+    const statusChangeHistory: StatusChangeHistoryDto[] = statusChanges.map(
+      (change) => ({
+        id: change.id,
+        previousStatus: change.previous_status,
+        newStatus: change.new_status,
+        changeReason: change.change_reason,
+        expectedResolutionDate: change.expected_resolution_date?.toISOString(),
+        changeType: change.change_type,
+        changedBy: {
+          id: change.changedBy.id,
+          fullName: change.changedBy.fullName,
+        },
+        createdAt: change.created_at.toISOString(),
+      }),
+    );
 
     const pagination: StatusHistoryPaginationDto = {
       currentPage: page,
@@ -934,7 +1060,9 @@ export class InventoryService {
   /**
    * Get valid status transitions based on current status
    */
-  private getValidStatusTransitions(currentStatus: AvailabilityStatus): AvailabilityStatus[] {
+  private getValidStatusTransitions(
+    currentStatus: AvailabilityStatus,
+  ): AvailabilityStatus[] {
     const transitions: Record<AvailabilityStatus, AvailabilityStatus[]> = {
       [AvailabilityStatus.AVAILABLE]: [
         AvailabilityStatus.RENTED,
@@ -957,9 +1085,7 @@ export class InventoryService {
         AvailabilityStatus.MAINTENANCE,
         AvailabilityStatus.LOST,
       ],
-      [AvailabilityStatus.LOST]: [
-        AvailabilityStatus.AVAILABLE,
-      ],
+      [AvailabilityStatus.LOST]: [AvailabilityStatus.AVAILABLE],
     };
 
     return transitions[currentStatus] || [];
@@ -1019,10 +1145,14 @@ export class InventoryService {
     ipAddress?: string,
     userAgent?: string,
   ): Promise<{
-    item: InventoryItemDto,
-    changes: { field: string, oldValue: string | null, newValue: string | null }[],
-    serialNumberChanged: boolean,
-    historicalLinkMaintained: boolean
+    item: InventoryItemDto;
+    changes: {
+      field: string;
+      oldValue: string | null;
+      newValue: string | null;
+    }[];
+    serialNumberChanged: boolean;
+    historicalLinkMaintained: boolean;
   }> {
     return this.dataSource.transaction(async (manager) => {
       // Find the existing item
@@ -1032,35 +1162,54 @@ export class InventoryService {
       });
 
       if (!existingItem) {
-        throw new NotFoundException({ code: MessageKeys.INVENTORY_ITEM_NOT_FOUND });
+        throw new NotFoundException({
+          code: MessageKeys.INVENTORY_ITEM_NOT_FOUND,
+        });
       }
 
       // Validate it's a serialized item
       if (existingItem.item_type !== ItemType.SERIALIZED) {
-        throw new BadRequestException({ code: MessageKeys.NOT_SERIALIZED_ITEM });
+        throw new BadRequestException({
+          code: MessageKeys.NOT_SERIALIZED_ITEM,
+        });
       }
 
-      const changes: { field: string, oldValue: string | null, newValue: string | null }[] = [];
+      const changes: {
+        field: string;
+        oldValue: string | null;
+        newValue: string | null;
+      }[] = [];
       let serialNumberChanged = false;
       let historicalLinkMaintained = false;
 
       // Handle serial number change
-      if (updateDto.serialNumber !== undefined && updateDto.serialNumber !== existingItem.serial_number) {
+      if (
+        updateDto.serialNumber !== undefined &&
+        updateDto.serialNumber !== existingItem.serial_number
+      ) {
         // Check if item has rental history and requires confirmation
-        if (existingItem.has_rental_history && !updateDto.confirmSerialNumberChange) {
-          throw new UnprocessableEntityException({ 
-            code: MessageKeys.SERIAL_NUMBER_CHANGE_CONFIRMATION_REQUIRED 
+        if (
+          existingItem.has_rental_history &&
+          !updateDto.confirmSerialNumberChange
+        ) {
+          throw new UnprocessableEntityException({
+            code: MessageKeys.SERIAL_NUMBER_CHANGE_CONFIRMATION_REQUIRED,
           });
         }
 
         // Validate new serial number is unique
         if (updateDto.serialNumber) {
           const existingWithSerial = await manager.findOne(InventoryItem, {
-            where: { serial_number: updateDto.serialNumber, tenant_id: tenantId },
+            where: {
+              serial_number: updateDto.serialNumber,
+              tenant_id: tenantId,
+            },
           });
 
           if (existingWithSerial) {
-            throw new ConflictException({ code: MessageKeys.SERIAL_NUMBER_EXISTS });
+            throw new ConflictException({
+              code: MessageKeys.SERIAL_NUMBER_EXISTS,
+            });
           }
         }
 
@@ -1078,7 +1227,10 @@ export class InventoryService {
       }
 
       // Handle other fields
-      if (updateDto.serialNumberSource !== undefined && updateDto.serialNumberSource !== existingItem.serial_number_source) {
+      if (
+        updateDto.serialNumberSource !== undefined &&
+        updateDto.serialNumberSource !== existingItem.serial_number_source
+      ) {
         changes.push({
           field: 'serialNumberSource',
           oldValue: existingItem.serial_number_source || null,
@@ -1087,7 +1239,10 @@ export class InventoryService {
         existingItem.serial_number_source = updateDto.serialNumberSource;
       }
 
-      if (updateDto.conditionNotes !== undefined && updateDto.conditionNotes !== existingItem.condition_notes) {
+      if (
+        updateDto.conditionNotes !== undefined &&
+        updateDto.conditionNotes !== existingItem.condition_notes
+      ) {
         changes.push({
           field: 'conditionNotes',
           oldValue: existingItem.condition_notes || null,
@@ -1097,7 +1252,8 @@ export class InventoryService {
       }
 
       if (updateDto.lastMaintenanceDate !== undefined) {
-        const oldDate = existingItem.last_maintenance_date?.toISOString() || null;
+        const oldDate =
+          existingItem.last_maintenance_date?.toISOString() || null;
         const newDate = updateDto.lastMaintenanceDate?.toISOString() || null;
         if (oldDate !== newDate) {
           changes.push({
@@ -1111,12 +1267,18 @@ export class InventoryService {
 
       if (updateDto.nextMaintenanceDueDate !== undefined) {
         // Validate maintenance date logic
-        if (updateDto.nextMaintenanceDueDate && updateDto.lastMaintenanceDate && 
-            updateDto.nextMaintenanceDueDate <= updateDto.lastMaintenanceDate) {
-          throw new BadRequestException({ code: MessageKeys.MAINTENANCE_DATE_LOGIC_ERROR });
+        if (
+          updateDto.nextMaintenanceDueDate &&
+          updateDto.lastMaintenanceDate &&
+          updateDto.nextMaintenanceDueDate <= updateDto.lastMaintenanceDate
+        ) {
+          throw new BadRequestException({
+            code: MessageKeys.MAINTENANCE_DATE_LOGIC_ERROR,
+          });
         }
 
-        const oldDate = existingItem.next_maintenance_due_date?.toISOString() || null;
+        const oldDate =
+          existingItem.next_maintenance_due_date?.toISOString() || null;
         const newDate = updateDto.nextMaintenanceDueDate?.toISOString() || null;
         if (oldDate !== newDate) {
           changes.push({
@@ -1124,7 +1286,8 @@ export class InventoryService {
             oldValue: oldDate,
             newValue: newDate,
           });
-          existingItem.next_maintenance_due_date = updateDto.nextMaintenanceDueDate;
+          existingItem.next_maintenance_due_date =
+            updateDto.nextMaintenanceDueDate;
         }
       }
 
@@ -1197,12 +1360,16 @@ export class InventoryService {
       });
 
       if (!existingItem) {
-        throw new NotFoundException({ code: MessageKeys.INVENTORY_ITEM_NOT_FOUND });
+        throw new NotFoundException({
+          code: MessageKeys.INVENTORY_ITEM_NOT_FOUND,
+        });
       }
 
       // Validate it's a non-serialized item
       if (existingItem.item_type !== ItemType.NON_SERIALIZED) {
-        throw new BadRequestException({ code: MessageKeys.NOT_NON_SERIALIZED_ITEM });
+        throw new BadRequestException({
+          code: MessageKeys.NOT_NON_SERIALIZED_ITEM,
+        });
       }
 
       const previousQuantity = existingItem.quantity || 0;
@@ -1210,19 +1377,23 @@ export class InventoryService {
 
       // Validate new quantity is not below allocated quantity
       if (updateDto.quantity < allocatedQuantity) {
-        throw new BadRequestException({ 
+        throw new BadRequestException({
           code: MessageKeys.QUANTITY_BELOW_ALLOCATED,
           details: {
             requestedQuantity: updateDto.quantity,
             allocatedQuantity,
-          }
+          },
         });
       }
 
       // Calculate impact
-      const availabilityChange = (updateDto.quantity - allocatedQuantity) - (previousQuantity - allocatedQuantity);
-      const significantReduction = previousQuantity > 0 && 
-        ((previousQuantity - updateDto.quantity) / previousQuantity) > 0.5;
+      const availabilityChange =
+        updateDto.quantity -
+        allocatedQuantity -
+        (previousQuantity - allocatedQuantity);
+      const significantReduction =
+        previousQuantity > 0 &&
+        (previousQuantity - updateDto.quantity) / previousQuantity > 0.5;
 
       // Update quantity fields
       existingItem.quantity = updateDto.quantity;
@@ -1298,7 +1469,11 @@ export class InventoryService {
     results: Array<{
       itemId: string;
       status: 'success' | 'failed' | 'partial';
-      changes: { field: string; oldValue: string | null; newValue: string | null }[];
+      changes: {
+        field: string;
+        oldValue: string | null;
+        newValue: string | null;
+      }[];
       errors: { field: string; reason: string }[];
     }>;
   }> {
@@ -1306,7 +1481,11 @@ export class InventoryService {
     const results: Array<{
       itemId: string;
       status: 'success' | 'failed' | 'partial';
-      changes: { field: string; oldValue: string | null; newValue: string | null }[];
+      changes: {
+        field: string;
+        oldValue: string | null;
+        newValue: string | null;
+      }[];
       errors: { field: string; reason: string }[];
     }> = [];
 
@@ -1317,7 +1496,11 @@ export class InventoryService {
     // Process each item individually
     for (const itemId of itemIds) {
       try {
-        const changes: { field: string; oldValue: string | null; newValue: string | null }[] = [];
+        const changes: {
+          field: string;
+          oldValue: string | null;
+          newValue: string | null;
+        }[] = [];
         const errors: { field: string; reason: string }[] = [];
 
         await this.dataSource.transaction(async (manager) => {
@@ -1327,15 +1510,20 @@ export class InventoryService {
           });
 
           if (!item) {
-            errors.push({ 
-              field: 'item', 
-              reason: this.i18nService.translate(MessageKeys.BULK_ITEM_NOT_FOUND).message 
+            errors.push({
+              field: 'item',
+              reason: this.i18nService.translate(
+                MessageKeys.BULK_ITEM_NOT_FOUND,
+              ).message,
             });
             return;
           }
 
           // Apply category change
-          if (operations.categoryId && operations.categoryId !== item.category_id) {
+          if (
+            operations.categoryId &&
+            operations.categoryId !== item.category_id
+          ) {
             const category = await manager.findOne(Category, {
               where: { id: operations.categoryId, tenantId: tenantId },
             });
@@ -1348,9 +1536,11 @@ export class InventoryService {
               });
               item.category_id = operations.categoryId;
             } else {
-              errors.push({ 
-                field: 'category', 
-                reason: this.i18nService.translate(MessageKeys.BULK_CATEGORY_NOT_FOUND).message 
+              errors.push({
+                field: 'category',
+                reason: this.i18nService.translate(
+                  MessageKeys.BULK_CATEGORY_NOT_FOUND,
+                ).message,
               });
             }
           }
@@ -1366,7 +1556,10 @@ export class InventoryService {
           }
 
           // Apply availability status change
-          if (operations.availabilityStatus && operations.availabilityStatus !== item.availability_status) {
+          if (
+            operations.availabilityStatus &&
+            operations.availabilityStatus !== item.availability_status
+          ) {
             changes.push({
               field: 'availabilityStatus',
               oldValue: item.availability_status,
@@ -1378,7 +1571,10 @@ export class InventoryService {
           // Append maintenance notes
           if (operations.appendMaintenanceNotes) {
             const oldNotes = item.condition_notes || '';
-            const newNotes = oldNotes + (oldNotes ? '\n' : '') + operations.appendMaintenanceNotes;
+            const newNotes =
+              oldNotes +
+              (oldNotes ? '\n' : '') +
+              operations.appendMaintenanceNotes;
             changes.push({
               field: 'conditionNotes',
               oldValue: oldNotes || null,
@@ -1416,17 +1612,21 @@ export class InventoryService {
           changes,
           errors,
         });
-
       } catch (error) {
         failedItems++;
         results.push({
           itemId,
           status: 'failed',
           changes: [],
-          errors: [{ 
-            field: 'general', 
-            reason: error.message || this.i18nService.translate(MessageKeys.BULK_GENERAL_ERROR).message 
-          }],
+          errors: [
+            {
+              field: 'general',
+              reason:
+                error.message ||
+                this.i18nService.translate(MessageKeys.BULK_GENERAL_ERROR)
+                  .message,
+            },
+          ],
         });
       }
     }

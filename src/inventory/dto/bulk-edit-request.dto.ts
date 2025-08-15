@@ -1,13 +1,13 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { 
-  IsArray, 
-  IsUUID, 
-  IsOptional, 
-  IsString, 
-  IsBoolean, 
-  MaxLength, 
+import {
+  IsArray,
+  IsUUID,
+  IsOptional,
+  IsString,
+  IsBoolean,
+  MaxLength,
   ArrayMinSize,
-  IsEnum 
+  IsEnum,
 } from 'class-validator';
 import { AvailabilityStatus, InventoryItemStatus } from '../../common/enums';
 
@@ -60,7 +60,7 @@ export class BulkEditRequestDto {
     type: [String],
     example: [
       '550e8400-e29b-41d4-a716-446655440000',
-      '550e8400-e29b-41d4-a716-446655440001'
+      '550e8400-e29b-41d4-a716-446655440001',
     ],
     minItems: 1,
   })

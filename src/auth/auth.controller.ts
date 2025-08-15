@@ -341,14 +341,15 @@ export class AuthController {
       COOKIE_SECURE: process.env.COOKIE_SECURE,
       COOKIE_SAME_SITE: process.env.COOKIE_SAME_SITE,
       COOKIE_DOMAIN: process.env.COOKIE_DOMAIN,
-      NODE_ENV: process.env.NODE_ENV
+      NODE_ENV: process.env.NODE_ENV,
     });
 
     // Set session cookie for frontend use
     res.cookie('session', result.data.sessionToken, {
       httpOnly: true,
       secure: process.env.COOKIE_SECURE === 'true', // Use explicit environment variable instead of NODE_ENV
-      sameSite: process.env.COOKIE_SAME_SITE as 'strict' | 'lax' | 'none' || 'lax', // Configurable sameSite
+      sameSite:
+        (process.env.COOKIE_SAME_SITE as 'strict' | 'lax' | 'none') || 'lax', // Configurable sameSite
       maxAge: cookieMaxAge,
       path: '/',
       domain: process.env.COOKIE_DOMAIN || undefined, // Explicit domain configuration
@@ -418,7 +419,8 @@ export class AuthController {
     res.clearCookie('session', {
       httpOnly: true,
       secure: process.env.COOKIE_SECURE === 'true',
-      sameSite: process.env.COOKIE_SAME_SITE as 'strict' | 'lax' | 'none' || 'lax',
+      sameSite:
+        (process.env.COOKIE_SAME_SITE as 'strict' | 'lax' | 'none') || 'lax',
       path: '/',
       domain: process.env.COOKIE_DOMAIN || undefined,
     });

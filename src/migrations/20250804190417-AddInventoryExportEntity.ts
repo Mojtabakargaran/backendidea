@@ -1,6 +1,14 @@
-import { MigrationInterface, QueryRunner, Table, TableIndex, TableForeignKey } from 'typeorm';
+import {
+  MigrationInterface,
+  QueryRunner,
+  Table,
+  TableIndex,
+  TableForeignKey,
+} from 'typeorm';
 
-export class AddInventoryExportEntity1725471457000 implements MigrationInterface {
+export class AddInventoryExportEntity1725471457000
+  implements MigrationInterface
+{
   name = 'AddInventoryExportEntity1725471457000';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
@@ -191,13 +199,28 @@ export class AddInventoryExportEntity1725471457000 implements MigrationInterface
 
   public async down(queryRunner: QueryRunner): Promise<void> {
     // Drop foreign keys
-    await queryRunner.dropForeignKey('inventory_exports', 'FK_inventory_exports_user');
-    await queryRunner.dropForeignKey('inventory_exports', 'FK_inventory_exports_tenant');
+    await queryRunner.dropForeignKey(
+      'inventory_exports',
+      'FK_inventory_exports_user',
+    );
+    await queryRunner.dropForeignKey(
+      'inventory_exports',
+      'FK_inventory_exports_tenant',
+    );
 
     // Drop indexes
-    await queryRunner.dropIndex('inventory_exports', 'IDX_inventory_exports_expires_at');
-    await queryRunner.dropIndex('inventory_exports', 'IDX_inventory_exports_tenant_status');
-    await queryRunner.dropIndex('inventory_exports', 'IDX_inventory_exports_tenant_exported_by');
+    await queryRunner.dropIndex(
+      'inventory_exports',
+      'IDX_inventory_exports_expires_at',
+    );
+    await queryRunner.dropIndex(
+      'inventory_exports',
+      'IDX_inventory_exports_tenant_status',
+    );
+    await queryRunner.dropIndex(
+      'inventory_exports',
+      'IDX_inventory_exports_tenant_exported_by',
+    );
 
     // Drop table
     await queryRunner.dropTable('inventory_exports');

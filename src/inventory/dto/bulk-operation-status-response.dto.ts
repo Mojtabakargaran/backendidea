@@ -91,14 +91,26 @@ export class BulkOperationStatusDataDto {
 
   @ApiProperty({
     description: 'Type of bulk operation',
-    enum: ['update_category', 'update_status', 'update_availability', 'update_maintenance', 'update_quantity'],
+    enum: [
+      'update_category',
+      'update_status',
+      'update_availability',
+      'update_maintenance',
+      'update_quantity',
+    ],
     example: 'update_category',
   })
   operationType: string;
 
   @ApiProperty({
     description: 'Current status of the operation',
-    enum: ['initiated', 'processing', 'completed', 'failed', 'partially_completed'],
+    enum: [
+      'initiated',
+      'processing',
+      'completed',
+      'failed',
+      'partially_completed',
+    ],
     example: 'processing',
   })
   status: string;
@@ -110,7 +122,8 @@ export class BulkOperationStatusDataDto {
   progress: BulkOperationProgressDto;
 
   @ApiProperty({
-    description: 'Operation results (populated when status is completed/failed)',
+    description:
+      'Operation results (populated when status is completed/failed)',
     type: BulkOperationResultsDto,
   })
   results: BulkOperationResultsDto;

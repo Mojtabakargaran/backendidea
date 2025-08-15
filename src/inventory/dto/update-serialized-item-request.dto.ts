@@ -1,5 +1,11 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsOptional, IsString, IsBoolean, IsDateString, MaxLength } from 'class-validator';
+import {
+  IsOptional,
+  IsString,
+  IsBoolean,
+  IsDateString,
+  MaxLength,
+} from 'class-validator';
 
 export class UpdateSerializedItemRequestDto {
   @ApiProperty({
@@ -55,7 +61,8 @@ export class UpdateSerializedItemRequestDto {
   nextMaintenanceDueDate?: string;
 
   @ApiProperty({
-    description: 'Confirmation for serial number change on item with rental history',
+    description:
+      'Confirmation for serial number change on item with rental history',
     example: false,
     default: false,
     required: false,

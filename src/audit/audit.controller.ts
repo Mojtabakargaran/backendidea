@@ -71,7 +71,10 @@ export class AuditController {
     name: 'userId',
     required: false,
     description: 'Filter by specific user ID or search by username/email',
-    schema: { type: 'string', example: '123e4567-e89b-12d3-a456-426614174000 or username' },
+    schema: {
+      type: 'string',
+      example: '123e4567-e89b-12d3-a456-426614174000 or username',
+    },
   })
   @ApiQuery({
     name: 'action',
@@ -188,7 +191,11 @@ export class AuditController {
     @Query() query: ListAuditLogsQueryDto,
     @Headers('accept-language') acceptLanguage?: string,
   ): Promise<ListAuditLogsResponseDto> {
-    const result = await this.auditService.getAuditLogs(currentUser, query, acceptLanguage);
+    const result = await this.auditService.getAuditLogs(
+      currentUser,
+      query,
+      acceptLanguage,
+    );
 
     const message = this.i18nService.translate(
       MessageKeys.AUDIT_LOGS_RETRIEVED_SUCCESS,
@@ -321,7 +328,8 @@ export class AuditController {
     @Param('exportId') exportId: string,
     @Res() res: Response,
   ): Promise<void> {
-    const { content, filename, contentType } = await this.auditService.downloadExport(exportId, currentUser);
+    const { content, filename, contentType } =
+      await this.auditService.downloadExport(exportId, currentUser);
 
     res.setHeader('Content-Type', contentType);
     res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);

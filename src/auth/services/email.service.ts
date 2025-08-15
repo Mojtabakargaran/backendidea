@@ -723,7 +723,10 @@ export class EmailService {
     language: string = 'en',
   ): Promise<void> {
     try {
-      const htmlContent = this.generateProfileUpdateHtml(emailContent, language);
+      const htmlContent = this.generateProfileUpdateHtml(
+        emailContent,
+        language,
+      );
 
       const mailOptions = {
         from: this.configService.get<string>('EMAIL_FROM'),
@@ -748,7 +751,10 @@ export class EmailService {
   /**
    * Generate HTML content for profile update notification email
    */
-  private generateProfileUpdateHtml(content: any, language: string = 'en'): string {
+  private generateProfileUpdateHtml(
+    content: any,
+    language: string = 'en',
+  ): string {
     const changesHtml = content.changes
       .map((change: string) => `<li>${change}</li>`)
       .join('');
@@ -760,7 +766,9 @@ export class EmailService {
     const fontFamily = isRTL
       ? 'font-family: "Tahoma", "Segoe UI", sans-serif;'
       : 'font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;';
-    const listDirection = isRTL ? 'padding-right: 20px;' : 'padding-left: 20px;';
+    const listDirection = isRTL
+      ? 'padding-right: 20px;'
+      : 'padding-left: 20px;';
 
     return `
       <!DOCTYPE html>
@@ -901,7 +909,11 @@ export class EmailService {
     language: string = 'fa',
   ): Promise<void> {
     try {
-      const htmlContent = this.generateAdminResetLinkTemplate(emailContent, resetUrl, language);
+      const htmlContent = this.generateAdminResetLinkTemplate(
+        emailContent,
+        resetUrl,
+        language,
+      );
 
       const mailOptions = {
         from: this.configService.get<string>('EMAIL_FROM'),
@@ -913,7 +925,10 @@ export class EmailService {
       await this.transporter.sendMail(mailOptions);
       this.logger.log(`Admin reset link email sent successfully to ${email}`);
     } catch (error) {
-      this.logger.error(`Failed to send admin reset link email to ${email}`, error);
+      this.logger.error(
+        `Failed to send admin reset link email to ${email}`,
+        error,
+      );
       throw new Error(MessageKeys.EMAIL_SERVICE_ERROR);
     }
   }
@@ -1052,7 +1067,11 @@ export class EmailService {
     language: string = 'fa',
   ): Promise<void> {
     try {
-      const htmlContent = this.generateAdminResetPasswordTemplate(emailContent, temporaryPassword, language);
+      const htmlContent = this.generateAdminResetPasswordTemplate(
+        emailContent,
+        temporaryPassword,
+        language,
+      );
 
       const mailOptions = {
         from: this.configService.get<string>('EMAIL_FROM'),
@@ -1062,9 +1081,14 @@ export class EmailService {
       };
 
       await this.transporter.sendMail(mailOptions);
-      this.logger.log(`Admin reset password email sent successfully to ${email}`);
+      this.logger.log(
+        `Admin reset password email sent successfully to ${email}`,
+      );
     } catch (error) {
-      this.logger.error(`Failed to send admin reset password email to ${email}`, error);
+      this.logger.error(
+        `Failed to send admin reset password email to ${email}`,
+        error,
+      );
       throw new Error(MessageKeys.EMAIL_SERVICE_ERROR);
     }
   }
@@ -1230,7 +1254,10 @@ export class EmailService {
   /**
    * Generate HTML content for status change notification email with RTL support
    */
-  private generateStatusChangeHtml(content: any, language: string = 'en'): string {
+  private generateStatusChangeHtml(
+    content: any,
+    language: string = 'en',
+  ): string {
     // Determine if RTL is needed
     const isRTL = language === 'fa' || language === 'ar';
     const dirAttribute = isRTL ? 'dir="rtl"' : 'dir="ltr"';
@@ -1238,7 +1265,7 @@ export class EmailService {
     const fontFamily = isRTL
       ? 'font-family: "Tahoma", "Segoe UI", sans-serif;'
       : 'font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;';
-    
+
     // Determine colors based on status change type
     const isDeactivation = content.isDeactivation;
     const headerBgColor = isDeactivation ? '#f8d7da' : '#d4edda';

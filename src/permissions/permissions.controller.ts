@@ -189,7 +189,8 @@ export class RolesController {
   @Get()
   @ApiOperation({
     summary: 'List available roles',
-    description: 'Retrieve list of roles available for user assignment within tenant - Required for ?',
+    description:
+      'Retrieve list of roles available for user assignment within tenant - Required for ?',
   })
   @ApiHeader({
     name: 'accept-language',
@@ -280,9 +281,9 @@ export class RolesController {
   ): Promise<RolePermissionsResponse> {
     const authenticatedUser: AuthenticatedUser = req.user;
     return this.permissionsService.getRolePermissions(
-      roleId, 
-      authenticatedUser, 
-      acceptLanguage
+      roleId,
+      authenticatedUser,
+      acceptLanguage,
     );
   }
 

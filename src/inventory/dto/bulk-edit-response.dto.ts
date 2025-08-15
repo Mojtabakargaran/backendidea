@@ -155,7 +155,8 @@ export class BulkEditAsyncDataDto {
 
   @ApiProperty({
     description: 'URL to check operation status',
-    example: '/api/inventory/bulk-operations/550e8400-e29b-41d4-a716-446655440000',
+    example:
+      '/api/inventory/bulk-operations/550e8400-e29b-41d4-a716-446655440000',
   })
   statusCheckUrl: string;
 }

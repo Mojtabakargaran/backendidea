@@ -85,9 +85,9 @@ export class PermissionsService {
    * Retrieve permissions assigned to a specific role within tenant context
    */
   async getRolePermissions(
-    roleId: string, 
+    roleId: string,
     authenticatedUser: AuthenticatedUser,
-    language: string
+    language: string,
   ) {
     try {
       // Find the role
@@ -112,9 +112,9 @@ export class PermissionsService {
       });
 
       const rolePermissions = await this.rolePermissionRepository.find({
-        where: { 
+        where: {
           roleId,
-          tenantId: authenticatedUser.tenantId 
+          tenantId: authenticatedUser.tenantId,
         },
         relations: ['permission'],
       });
@@ -618,8 +618,8 @@ export class PermissionsService {
 
       // Extract permission names and return them
       return rolePermissions
-        .filter(rp => rp.permission && rp.permission.isActive)
-        .map(rp => rp.permission.name);
+        .filter((rp) => rp.permission && rp.permission.isActive)
+        .map((rp) => rp.permission.name);
     } catch (error) {
       // Return empty array on any error for security
       console.error('Failed to get user permissions:', error);

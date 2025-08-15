@@ -45,9 +45,18 @@ export class CategoriesController {
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Create a new category' })
   @ApiResponse({ status: 201, description: 'Category created successfully' })
-  @ApiResponse({ status: 400, description: 'Bad request - validation errors or duplicate name' })
-  @ApiResponse({ status: 401, description: 'Unauthorized - invalid or missing session' })
-  @ApiResponse({ status: 403, description: 'Forbidden - insufficient permissions' })
+  @ApiResponse({
+    status: 400,
+    description: 'Bad request - validation errors or duplicate name',
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Unauthorized - invalid or missing session',
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'Forbidden - insufficient permissions',
+  })
   async createCategory(
     @Headers('accept-language') acceptLanguage: string,
     @Req() req: any,
@@ -68,11 +77,8 @@ export class CategoriesController {
       });
     }
     try {
-      const data: CreateCategoryResponseDto = await this.categoriesService.createCategory(
-        tenantId,
-        body,
-        userId,
-      );
+      const data: CreateCategoryResponseDto =
+        await this.categoriesService.createCategory(tenantId, body, userId);
       const successMessage = await this.i18nService.translate(
         MessageKeys.CATEGORY_CREATED,
         acceptLanguage,
@@ -129,9 +135,18 @@ export class CategoriesController {
   @Permission('categories:read')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'List categories with pagination and search' })
-  @ApiResponse({ status: 200, description: 'Categories retrieved successfully' })
-  @ApiResponse({ status: 401, description: 'Unauthorized - invalid or missing session' })
-  @ApiResponse({ status: 403, description: 'Forbidden - insufficient permissions' })
+  @ApiResponse({
+    status: 200,
+    description: 'Categories retrieved successfully',
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Unauthorized - invalid or missing session',
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'Forbidden - insufficient permissions',
+  })
   async listCategories(
     @Req() req: any,
     @Query() query: ListCategoriesQueryDto,
@@ -146,10 +161,8 @@ export class CategoriesController {
     }
 
     try {
-      const data: ListCategoriesResponseDto = await this.categoriesService.listCategories(
-        tenantId,
-        query,
-      );
+      const data: ListCategoriesResponseDto =
+        await this.categoriesService.listCategories(tenantId, query);
       return res.status(HttpStatus.OK).json({
         code: MessageKeys.CATEGORIES_RETRIEVED,
         message: 'Categories retrieved successfully',
@@ -174,11 +187,24 @@ export class CategoriesController {
   @Permission('categories:update')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Update an existing category' })
-  @ApiParam({ name: 'categoryId', description: 'Category UUID', format: 'uuid' })
+  @ApiParam({
+    name: 'categoryId',
+    description: 'Category UUID',
+    format: 'uuid',
+  })
   @ApiResponse({ status: 200, description: 'Category updated successfully' })
-  @ApiResponse({ status: 400, description: 'Bad request - validation errors or duplicate name' })
-  @ApiResponse({ status: 401, description: 'Unauthorized - invalid or missing session' })
-  @ApiResponse({ status: 403, description: 'Forbidden - insufficient permissions' })
+  @ApiResponse({
+    status: 400,
+    description: 'Bad request - validation errors or duplicate name',
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Unauthorized - invalid or missing session',
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'Forbidden - insufficient permissions',
+  })
   @ApiResponse({ status: 404, description: 'Category not found' })
   async updateCategory(
     @Req() req: any,
@@ -196,12 +222,13 @@ export class CategoriesController {
     }
 
     try {
-      const data: UpdateCategoryResponseDto = await this.categoriesService.updateCategory(
-        tenantId,
-        categoryId,
-        body,
-        userId,
-      );
+      const data: UpdateCategoryResponseDto =
+        await this.categoriesService.updateCategory(
+          tenantId,
+          categoryId,
+          body,
+          userId,
+        );
       return res.status(HttpStatus.OK).json({
         code: MessageKeys.CATEGORY_UPDATED,
         message: 'Category updated successfully',
@@ -244,11 +271,24 @@ export class CategoriesController {
   @Permission('categories:delete')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Delete a category' })
-  @ApiParam({ name: 'categoryId', description: 'Category UUID', format: 'uuid' })
+  @ApiParam({
+    name: 'categoryId',
+    description: 'Category UUID',
+    format: 'uuid',
+  })
   @ApiResponse({ status: 200, description: 'Category deleted successfully' })
-  @ApiResponse({ status: 400, description: 'Bad request - category has associated items' })
-  @ApiResponse({ status: 401, description: 'Unauthorized - invalid or missing session' })
-  @ApiResponse({ status: 403, description: 'Forbidden - insufficient permissions' })
+  @ApiResponse({
+    status: 400,
+    description: 'Bad request - category has associated items',
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Unauthorized - invalid or missing session',
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'Forbidden - insufficient permissions',
+  })
   @ApiResponse({ status: 404, description: 'Category not found' })
   async deleteCategory(
     @Req() req: any,
@@ -318,10 +358,23 @@ export class CategoriesController {
   @Permission('categories:read')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Get category items count for deletion validation' })
-  @ApiParam({ name: 'categoryId', description: 'Category UUID', format: 'uuid' })
-  @ApiResponse({ status: 200, description: 'Items count retrieved successfully' })
-  @ApiResponse({ status: 401, description: 'Unauthorized - invalid or missing session' })
-  @ApiResponse({ status: 403, description: 'Forbidden - insufficient permissions' })
+  @ApiParam({
+    name: 'categoryId',
+    description: 'Category UUID',
+    format: 'uuid',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Items count retrieved successfully',
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Unauthorized - invalid or missing session',
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'Forbidden - insufficient permissions',
+  })
   @ApiResponse({ status: 404, description: 'Category not found' })
   async getCategoryItemsCount(
     @Req() req: any,

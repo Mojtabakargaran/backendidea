@@ -47,14 +47,21 @@ import { UpdateSerializedItemResponseDto } from './dto/update-serialized-item-re
 import { UpdateQuantityRequestDto } from './dto/update-quantity-request.dto';
 import { UpdateQuantityResponseDto } from './dto/update-quantity-response.dto';
 import { BulkEditRequestDto } from './dto/bulk-edit-request.dto';
-import { BulkEditSyncResponseDto, BulkEditAsyncResponseDto } from './dto/bulk-edit-response.dto';
+import {
+  BulkEditSyncResponseDto,
+  BulkEditAsyncResponseDto,
+} from './dto/bulk-edit-response.dto';
 import { SessionAuthGuard } from '../auth/guards/session-auth.guard';
 import { PermissionsGuard } from '../permissions/permissions.guard';
 import { Permission } from '../permissions/permission.decorator';
 import { AuthenticatedUser } from '../auth/decorators/authenticated-user.decorator';
 import { I18nService } from '../i18n/i18n.service';
 import { MessageKeys } from '../common/message-keys';
-import { ItemType, AvailabilityStatus, InventoryItemStatus } from '../common/enums';
+import {
+  ItemType,
+  AvailabilityStatus,
+  InventoryItemStatus,
+} from '../common/enums';
 
 @ApiTags('Inventory Management')
 @Controller('inventory')
@@ -77,17 +84,70 @@ export class InventoryController {
   @Permission('inventory:read')
   @ApiOperation({
     summary: 'List inventory items',
-    description: 'Retrieve paginated list of inventory items with filtering and sorting options',
+    description:
+      'Retrieve paginated list of inventory items with filtering and sorting options',
   })
-  @ApiQuery({ name: 'page', required: false, type: Number, description: 'Page number (default: 1)' })
-  @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Items per page (default: 20, max: 100)' })
-  @ApiQuery({ name: 'search', required: false, type: String, description: 'Search in item name, description, or serial number' })
-  @ApiQuery({ name: 'categoryId', required: false, type: String, description: 'UUID format for category filtering' })
-  @ApiQuery({ name: 'itemType', required: false, enum: ItemType, description: 'Filter by item type' })
-  @ApiQuery({ name: 'availabilityStatus', required: false, enum: AvailabilityStatus, description: 'Filter by availability status' })
-  @ApiQuery({ name: 'status', required: false, enum: InventoryItemStatus, description: 'Filter by item status' })
-  @ApiQuery({ name: 'sortBy', required: false, enum: ['name', 'category', 'itemType', 'availabilityStatus', 'createdAt', 'updatedAt'], description: 'Sort field (default: "createdAt")' })
-  @ApiQuery({ name: 'sortOrder', required: false, enum: ['asc', 'desc'], description: 'Sort direction (default: "desc")' })
+  @ApiQuery({
+    name: 'page',
+    required: false,
+    type: Number,
+    description: 'Page number (default: 1)',
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    type: Number,
+    description: 'Items per page (default: 20, max: 100)',
+  })
+  @ApiQuery({
+    name: 'search',
+    required: false,
+    type: String,
+    description: 'Search in item name, description, or serial number',
+  })
+  @ApiQuery({
+    name: 'categoryId',
+    required: false,
+    type: String,
+    description: 'UUID format for category filtering',
+  })
+  @ApiQuery({
+    name: 'itemType',
+    required: false,
+    enum: ItemType,
+    description: 'Filter by item type',
+  })
+  @ApiQuery({
+    name: 'availabilityStatus',
+    required: false,
+    enum: AvailabilityStatus,
+    description: 'Filter by availability status',
+  })
+  @ApiQuery({
+    name: 'status',
+    required: false,
+    enum: InventoryItemStatus,
+    description: 'Filter by item status',
+  })
+  @ApiQuery({
+    name: 'sortBy',
+    required: false,
+    enum: [
+      'name',
+      'category',
+      'itemType',
+      'availabilityStatus',
+      'createdAt',
+      'updatedAt',
+    ],
+    description: 'Sort field (default: "createdAt")',
+  })
+  @ApiQuery({
+    name: 'sortOrder',
+    required: false,
+    enum: ['asc', 'desc'],
+    description: 'Sort direction (default: "desc")',
+  })
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'Inventory items retrieved successfully',
@@ -105,11 +165,20 @@ export class InventoryController {
     @AuthenticatedUser() user: any,
     @Query() queryDto: ListInventoryItemsQueryDto,
   ): Promise<ListInventoryItemsResponseDto> {
-    const { items, meta } = await this.inventoryService.listInventoryItems(user.tenantId, queryDto, user.id);
+    const { items, meta } = await this.inventoryService.listInventoryItems(
+      user.tenantId,
+      queryDto,
+      user.id,
+    );
 
     return {
       code: MessageKeys.INVENTORY_LIST_RETRIEVED,
-      message: (await this.i18nService.translate(MessageKeys.INVENTORY_LIST_RETRIEVED, user.language)).message,
+      message: (
+        await this.i18nService.translate(
+          MessageKeys.INVENTORY_LIST_RETRIEVED,
+          user.language,
+        )
+      ).message,
       data: items,
       meta,
     };
@@ -151,7 +220,12 @@ export class InventoryController {
 
     return {
       code: MessageKeys.INVENTORY_ITEM_CREATED,
-      message: (await this.i18nService.translate(MessageKeys.INVENTORY_ITEM_CREATED, user.language)).message,
+      message: (
+        await this.i18nService.translate(
+          MessageKeys.INVENTORY_ITEM_CREATED,
+          user.language,
+        )
+      ).message,
       data: inventoryItem,
     };
   }
@@ -190,11 +264,20 @@ export class InventoryController {
     @AuthenticatedUser() user: any,
     @Param('itemId', ParseUUIDPipe) itemId: string,
   ): Promise<GetInventoryItemResponseDto> {
-    const inventoryItem = await this.inventoryService.getInventoryItem(user.tenantId, itemId, user.id);
+    const inventoryItem = await this.inventoryService.getInventoryItem(
+      user.tenantId,
+      itemId,
+      user.id,
+    );
 
     return {
       code: MessageKeys.INVENTORY_ITEM_RETRIEVED,
-      message: (await this.i18nService.translate(MessageKeys.INVENTORY_ITEM_RETRIEVED, user.language)).message,
+      message: (
+        await this.i18nService.translate(
+          MessageKeys.INVENTORY_ITEM_RETRIEVED,
+          user.language,
+        )
+      ).message,
       data: inventoryItem,
     };
   }
@@ -204,7 +287,8 @@ export class InventoryController {
   @Permission('inventory:export')
   @ApiOperation({
     summary: 'Export inventory items',
-    description: 'Export detailed information for one or more inventory items in various formats',
+    description:
+      'Export detailed information for one or more inventory items in various formats',
   })
   @ApiResponse({
     status: HttpStatus.OK,
@@ -232,7 +316,8 @@ export class InventoryController {
     @Body() exportDto: ExportInventoryRequestDto,
     @Req() request: Request,
   ): Promise<ExportInventoryResponseDto> {
-    const ipAddress = request.ip || request.connection.remoteAddress || 'unknown';
+    const ipAddress =
+      request.ip || request.connection.remoteAddress || 'unknown';
     const userAgent = request.headers['user-agent'];
 
     const exportResult = await this.inventoryService.initiateInventoryExport(
@@ -245,14 +330,20 @@ export class InventoryController {
 
     return {
       code: MessageKeys.EXPORT_INITIATED,
-      message: (await this.i18nService.translate(MessageKeys.EXPORT_INITIATED, user.language)).message,
+      message: (
+        await this.i18nService.translate(
+          MessageKeys.EXPORT_INITIATED,
+          user.language,
+        )
+      ).message,
       data: {
         exportId: exportResult.exportId,
         status: exportResult.status,
         recordCount: exportResult.recordCount,
         downloadUrl: exportResult.downloadUrl,
         expiresAt: exportResult.expiresAt.toISOString(),
-        estimatedCompletionTime: exportResult.estimatedCompletionTime.toISOString(),
+        estimatedCompletionTime:
+          exportResult.estimatedCompletionTime.toISOString(),
       },
     };
   }
@@ -285,14 +376,23 @@ export class InventoryController {
     @Param('exportId', ParseUUIDPipe) exportId: string,
     @Res() response: Response,
   ) {
-    const result = await this.inventoryService.downloadExport(user.tenantId, exportId);
-    
+    const result = await this.inventoryService.downloadExport(
+      user.tenantId,
+      exportId,
+    );
+
     // Set appropriate headers for file download
     response.setHeader('Content-Type', result.contentType);
-    response.setHeader('Content-Disposition', `attachment; filename="${result.filename}"`);
-    response.setHeader('Content-Length', Buffer.byteLength(result.content, 'utf8').toString());
+    response.setHeader(
+      'Content-Disposition',
+      `attachment; filename="${result.filename}"`,
+    );
+    response.setHeader(
+      'Content-Length',
+      Buffer.byteLength(result.content, 'utf8').toString(),
+    );
     response.setHeader('Cache-Control', 'no-cache');
-    
+
     // Send the content and end the response
     response.send(result.content);
     response.end();
@@ -327,7 +427,12 @@ export class InventoryController {
 
     return {
       code: MessageKeys.SERIAL_NUMBER_VALIDATION_RESULT,
-      message: (await this.i18nService.translate(MessageKeys.SERIAL_NUMBER_VALIDATION_RESULT, user.language)).message,
+      message: (
+        await this.i18nService.translate(
+          MessageKeys.SERIAL_NUMBER_VALIDATION_RESULT,
+          user.language,
+        )
+      ).message,
       data: {
         isUnique: validation.isUnique,
         serialNumber: validateDto.serialNumber,
@@ -356,11 +461,18 @@ export class InventoryController {
   async generateSerialNumber(
     @AuthenticatedUser() user: any,
   ): Promise<GenerateSerialNumberResponseDto> {
-    const serialNumber = await this.inventoryService.generateSerialNumber(user.tenantId);
+    const serialNumber = await this.inventoryService.generateSerialNumber(
+      user.tenantId,
+    );
 
     return {
       code: MessageKeys.SERIAL_NUMBER_GENERATED,
-      message: (await this.i18nService.translate(MessageKeys.SERIAL_NUMBER_GENERATED, user.language)).message,
+      message: (
+        await this.i18nService.translate(
+          MessageKeys.SERIAL_NUMBER_GENERATED,
+          user.language,
+        )
+      ).message,
       data: {
         serialNumber,
       },
@@ -428,7 +540,12 @@ export class InventoryController {
 
     return {
       code: MessageKeys.ITEM_UPDATED,
-      message: (await this.i18nService.translate(MessageKeys.ITEM_UPDATED, user.language)).message,
+      message: (
+        await this.i18nService.translate(
+          MessageKeys.ITEM_UPDATED,
+          user.language,
+        )
+      ).message,
       data: result,
     };
   }
@@ -490,7 +607,12 @@ export class InventoryController {
 
     return {
       code: MessageKeys.STATUS_CHANGED,
-      message: (await this.i18nService.translate(MessageKeys.STATUS_CHANGED, user.language)).message,
+      message: (
+        await this.i18nService.translate(
+          MessageKeys.STATUS_CHANGED,
+          user.language,
+        )
+      ).message,
       data: {
         itemId: result.itemId,
         previousStatus: result.previousStatus,
@@ -506,7 +628,8 @@ export class InventoryController {
   @Get('status-options/:id')
   @ApiOperation({
     summary: 'Get valid status transition options',
-    description: 'Retrieve valid status transition options for dropdown population',
+    description:
+      'Retrieve valid status transition options for dropdown population',
   })
   @ApiParam({
     name: 'id',
@@ -530,11 +653,19 @@ export class InventoryController {
     @AuthenticatedUser() user: any,
     @Param('id', ParseUUIDPipe) itemId: string,
   ): Promise<GetStatusOptionsResponseDto> {
-    const result = await this.inventoryService.getStatusOptions(user.tenantId, itemId);
+    const result = await this.inventoryService.getStatusOptions(
+      user.tenantId,
+      itemId,
+    );
 
     return {
       code: MessageKeys.STATUS_OPTIONS_RETRIEVED,
-      message: (await this.i18nService.translate(MessageKeys.STATUS_OPTIONS_RETRIEVED, user.language)).message,
+      message: (
+        await this.i18nService.translate(
+          MessageKeys.STATUS_OPTIONS_RETRIEVED,
+          user.language,
+        )
+      ).message,
       data: result,
     };
   }
@@ -549,8 +680,18 @@ export class InventoryController {
     description: 'Inventory item UUID',
     format: 'uuid',
   })
-  @ApiQuery({ name: 'page', required: false, type: Number, description: 'Page number (default: 1)' })
-  @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Items per page (default: 20, max: 50)' })
+  @ApiQuery({
+    name: 'page',
+    required: false,
+    type: Number,
+    description: 'Page number (default: 1)',
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    type: Number,
+    description: 'Items per page (default: 20, max: 50)',
+  })
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'Status history retrieved successfully',
@@ -569,11 +710,20 @@ export class InventoryController {
     @Param('id', ParseUUIDPipe) itemId: string,
     @Query() queryDto: GetStatusHistoryQueryDto,
   ): Promise<GetStatusHistoryResponseDto> {
-    const result = await this.inventoryService.getStatusHistory(user.tenantId, itemId, queryDto);
+    const result = await this.inventoryService.getStatusHistory(
+      user.tenantId,
+      itemId,
+      queryDto,
+    );
 
     return {
       code: MessageKeys.STATUS_HISTORY_RETRIEVED,
-      message: (await this.i18nService.translate(MessageKeys.STATUS_HISTORY_RETRIEVED, user.language)).message,
+      message: (
+        await this.i18nService.translate(
+          MessageKeys.STATUS_HISTORY_RETRIEVED,
+          user.language,
+        )
+      ).message,
       data: result,
     };
   }
@@ -583,7 +733,8 @@ export class InventoryController {
   @Permission('inventory:update')
   @ApiOperation({
     summary: 'Update Serialized Item Information',
-    description: 'Update specific fields for serialized inventory items including serial number, maintenance dates, and condition notes',
+    description:
+      'Update specific fields for serialized inventory items including serial number, maintenance dates, and condition notes',
   })
   @ApiParam({
     name: 'itemId',
@@ -605,7 +756,8 @@ export class InventoryController {
   })
   @ApiResponse({
     status: 400,
-    description: 'Validation error, duplicate serial number, or invalid maintenance dates',
+    description:
+      'Validation error, duplicate serial number, or invalid maintenance dates',
   })
   @ApiResponse({
     status: 401,
@@ -613,11 +765,13 @@ export class InventoryController {
   })
   @ApiResponse({
     status: 403,
-    description: 'Forbidden - insufficient permissions or elevated permissions required for serial number change',
+    description:
+      'Forbidden - insufficient permissions or elevated permissions required for serial number change',
   })
   @ApiResponse({
     status: 404,
-    description: 'Item not found, belongs to different tenant, or not a serialized item',
+    description:
+      'Item not found, belongs to different tenant, or not a serialized item',
   })
   @ApiResponse({
     status: 409,
@@ -645,8 +799,12 @@ export class InventoryController {
         serialNumber: updateDto.serialNumber,
         serialNumberSource: updateDto.serialNumberSource,
         conditionNotes: updateDto.conditionNotes,
-        lastMaintenanceDate: updateDto.lastMaintenanceDate ? new Date(updateDto.lastMaintenanceDate) : undefined,
-        nextMaintenanceDueDate: updateDto.nextMaintenanceDueDate ? new Date(updateDto.nextMaintenanceDueDate) : undefined,
+        lastMaintenanceDate: updateDto.lastMaintenanceDate
+          ? new Date(updateDto.lastMaintenanceDate)
+          : undefined,
+        nextMaintenanceDueDate: updateDto.nextMaintenanceDueDate
+          ? new Date(updateDto.nextMaintenanceDueDate)
+          : undefined,
         confirmSerialNumberChange: updateDto.confirmSerialNumberChange,
       },
       request.ip,
@@ -655,7 +813,12 @@ export class InventoryController {
 
     return {
       code: MessageKeys.SERIALIZED_ITEM_UPDATED,
-      message: (await this.i18nService.translate(MessageKeys.SERIALIZED_ITEM_UPDATED, user.language)).message,
+      message: (
+        await this.i18nService.translate(
+          MessageKeys.SERIALIZED_ITEM_UPDATED,
+          user.language,
+        )
+      ).message,
       data: result,
     };
   }
@@ -665,7 +828,8 @@ export class InventoryController {
   @Permission('inventory:update')
   @ApiOperation({
     summary: 'Update Non-Serialized Item Quantity',
-    description: 'Update the total quantity of a non-serialized inventory item with validation and impact analysis',
+    description:
+      'Update the total quantity of a non-serialized inventory item with validation and impact analysis',
   })
   @ApiParam({
     name: 'itemId',
@@ -699,7 +863,8 @@ export class InventoryController {
   })
   @ApiResponse({
     status: 404,
-    description: 'Item not found, belongs to different tenant, or not a non-serialized item',
+    description:
+      'Item not found, belongs to different tenant, or not a non-serialized item',
   })
   @ApiResponse({
     status: 409,
@@ -726,7 +891,12 @@ export class InventoryController {
 
     return {
       code: MessageKeys.QUANTITY_UPDATED,
-      message: (await this.i18nService.translate(MessageKeys.QUANTITY_UPDATED, user.language)).message,
+      message: (
+        await this.i18nService.translate(
+          MessageKeys.QUANTITY_UPDATED,
+          user.language,
+        )
+      ).message,
       data: result,
     };
   }
@@ -736,7 +906,8 @@ export class InventoryController {
   @Permission('inventory:update')
   @ApiOperation({
     summary: 'Bulk Edit Multiple Inventory Items',
-    description: 'Simultaneously update common properties across multiple inventory items with detailed result reporting',
+    description:
+      'Simultaneously update common properties across multiple inventory items with detailed result reporting',
   })
   @ApiHeader({
     name: 'accept-language',
@@ -757,7 +928,8 @@ export class InventoryController {
   })
   @ApiResponse({
     status: 400,
-    description: 'Validation error, invalid item selection, or incompatible bulk operations',
+    description:
+      'Validation error, invalid item selection, or incompatible bulk operations',
   })
   @ApiResponse({
     status: 401,
@@ -765,11 +937,13 @@ export class InventoryController {
   })
   @ApiResponse({
     status: 403,
-    description: 'Forbidden - insufficient permissions for bulk edit operations',
+    description:
+      'Forbidden - insufficient permissions for bulk edit operations',
   })
   @ApiResponse({
     status: 404,
-    description: 'One or more selected items not found or belong to different tenant',
+    description:
+      'One or more selected items not found or belong to different tenant',
   })
   @ApiResponse({
     status: 422,
@@ -785,7 +959,10 @@ export class InventoryController {
     @Req() request: Request,
   ): Promise<BulkEditSyncResponseDto> {
     // Check if this is a large operation (>100 items)
-    if (bulkEditDto.itemIds.length > 100 && !bulkEditDto.confirmLargeOperation) {
+    if (
+      bulkEditDto.itemIds.length > 100 &&
+      !bulkEditDto.confirmLargeOperation
+    ) {
       throw new BadRequestException({
         code: MessageKeys.BULK_LARGE_OPERATION_WARNING,
         details: {
@@ -806,7 +983,12 @@ export class InventoryController {
 
     return {
       code: MessageKeys.BULK_EDIT_COMPLETED,
-      message: (await this.i18nService.translate(MessageKeys.BULK_EDIT_COMPLETED, user.language)).message,
+      message: (
+        await this.i18nService.translate(
+          MessageKeys.BULK_EDIT_COMPLETED,
+          user.language,
+        )
+      ).message,
       data: result,
     };
   }

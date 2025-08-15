@@ -19,32 +19,33 @@ export class SerialNumberSequence {
   @Column({ type: 'uuid' })
   tenant_id: string;
 
-  @Column({ 
-    type: 'varchar', 
-    length: 10, 
+  @Column({
+    type: 'varchar',
+    length: 10,
     default: 'SN',
-    comment: 'Prefix for generated serial numbers'
+    comment: 'Prefix for generated serial numbers',
   })
   prefix: string;
 
-  @Column({ 
-    type: 'bigint', 
+  @Column({
+    type: 'bigint',
     default: 1,
-    comment: 'Current sequence number'
+    comment: 'Current sequence number',
   })
   current_number: number;
 
-  @Column({ 
-    type: 'integer', 
+  @Column({
+    type: 'integer',
     default: 8,
-    comment: 'Number of digits to pad the sequence number'
+    comment: 'Number of digits to pad the sequence number',
   })
   padding_length: number;
 
-  @Column({ 
-    type: 'boolean', 
+  @Column({
+    type: 'boolean',
     default: true,
-    comment: 'Whether this sequence is active for generating new serial numbers'
+    comment:
+      'Whether this sequence is active for generating new serial numbers',
   })
   is_active: boolean;
 
@@ -63,7 +64,9 @@ export class SerialNumberSequence {
    * Generate the next serial number for this sequence
    */
   generateSerialNumber(): string {
-    const paddedNumber = this.current_number.toString().padStart(this.padding_length, '0');
+    const paddedNumber = this.current_number
+      .toString()
+      .padStart(this.padding_length, '0');
     return `${this.prefix}${paddedNumber}`;
   }
 

@@ -1,4 +1,10 @@
-import { Injectable, ConflictException, ForbiddenException, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  ConflictException,
+  ForbiddenException,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Like, Not, In } from 'typeorm';
 import { Category } from '../../entities/category.entity';
@@ -7,13 +13,21 @@ import { InventoryItem } from '../../entities/inventory-item.entity';
 import { CreateCategoryRequestDto } from '../dto/create-category-request.dto';
 import { CreateCategoryResponseDto } from '../dto/create-category-response.dto';
 import { ListCategoriesQueryDto } from '../dto/list-categories-query.dto';
-import { ListCategoriesResponseDto, CategoryListItemDto, PaginationDto } from '../dto/list-categories-response.dto';
+import {
+  ListCategoriesResponseDto,
+  CategoryListItemDto,
+  PaginationDto,
+} from '../dto/list-categories-response.dto';
 import { UpdateCategoryRequestDto } from '../dto/update-category-request.dto';
 import { UpdateCategoryResponseDto } from '../dto/update-category-response.dto';
 import { DeleteCategoryResponseDto } from '../dto/delete-category-response.dto';
 import { CategoryItemsCountResponseDto } from '../dto/category-items-count-response.dto';
 import { MessageKeys } from '../../common/message-keys';
-import { AuditAction, AuditStatus, InventoryItemStatus } from '../../common/enums';
+import {
+  AuditAction,
+  AuditStatus,
+  InventoryItemStatus,
+} from '../../common/enums';
 
 @Injectable()
 export class CategoriesService {
@@ -44,7 +58,10 @@ export class CategoriesService {
     const category = this.categoryRepository.create({
       tenantId,
       name: dto.name.trim(),
-      description: dto.description !== undefined && dto.description !== null ? dto.description.trim() : undefined,
+      description:
+        dto.description !== undefined && dto.description !== null
+          ? dto.description.trim()
+          : undefined,
     });
     const saved = await this.categoryRepository.save(category);
     return {
@@ -80,7 +97,10 @@ export class CategoriesService {
     // Map categories to DTOs with actual item counts
     const categoryDtos: CategoryListItemDto[] = await Promise.all(
       categories.map(async (category) => {
-        const itemsCount = await this.getItemsCountForCategory(category.id, tenantId);
+        const itemsCount = await this.getItemsCountForCategory(
+          category.id,
+          tenantId,
+        );
         return {
           id: category.id,
           name: category.name,
@@ -89,7 +109,7 @@ export class CategoriesService {
           createdAt: category.createdAt.toISOString(),
           updatedAt: category.updatedAt.toISOString(),
         };
-      })
+      }),
     );
 
     const totalPages = Math.ceil(total / limit);
@@ -128,8 +148,8 @@ export class CategoriesService {
     // Check for duplicate name if name is being changed
     if (dto.name.trim() !== category.name) {
       const exists = await this.categoryRepository.findOne({
-        where: { 
-          tenantId, 
+        where: {
+          tenantId,
           name: dto.name.trim(),
         },
       });
@@ -143,11 +163,17 @@ export class CategoriesService {
 
     // Update category
     category.name = dto.name.trim();
-    category.description = dto.description !== undefined && dto.description !== null ? dto.description.trim() : undefined;
+    category.description =
+      dto.description !== undefined && dto.description !== null
+        ? dto.description.trim()
+        : undefined;
 
     const updated = await this.categoryRepository.save(category);
 
-    const itemsCount = await this.getItemsCountForCategory(updated.id, tenantId);
+    const itemsCount = await this.getItemsCountForCategory(
+      updated.id,
+      tenantId,
+    );
 
     return {
       id: updated.id,
@@ -162,12 +188,15 @@ export class CategoriesService {
   /**
    * Helper method to get count of inventory items for a category
    */
-  private async getItemsCountForCategory(categoryId: string, tenantId: string): Promise<number> {
+  private async getItemsCountForCategory(
+    categoryId: string,
+    tenantId: string,
+  ): Promise<number> {
     return await this.inventoryItemRepository.count({
-      where: { 
+      where: {
         category_id: categoryId,
         tenant_id: tenantId,
-        status: Not(In([InventoryItemStatus.ARCHIVED])) // Don't count archived items
+        status: Not(In([InventoryItemStatus.ARCHIVED])), // Don't count archived items
       },
     });
   }
@@ -193,10 +222,10 @@ export class CategoriesService {
 
     // Check if category has associated inventory items
     const itemsCount = await this.inventoryItemRepository.count({
-      where: { 
+      where: {
         category_id: categoryId,
         tenant_id: tenantId,
-        status: Not(In([InventoryItemStatus.ARCHIVED])) // Don't count archived items
+        status: Not(In([InventoryItemStatus.ARCHIVED])), // Don't count archived items
       },
     });
 
@@ -286,10 +315,10 @@ export class CategoriesService {
 
     // Get actual inventory items count
     const itemsCount = await this.inventoryItemRepository.count({
-      where: { 
+      where: {
         category_id: categoryId,
         tenant_id: tenantId,
-        status: Not(In([InventoryItemStatus.ARCHIVED])) // Don't count archived items
+        status: Not(In([InventoryItemStatus.ARCHIVED])), // Don't count archived items
       },
     });
     const canDelete = itemsCount === 0;

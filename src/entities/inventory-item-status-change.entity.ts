@@ -29,55 +29,55 @@ export class InventoryItemStatusChange {
   @Column({ type: 'uuid' })
   changed_by: string;
 
-  @Column({ 
-    type: 'enum', 
+  @Column({
+    type: 'enum',
     enum: AvailabilityStatus,
-    comment: 'Previous availability status'
+    comment: 'Previous availability status',
   })
   previous_status: AvailabilityStatus;
 
-  @Column({ 
-    type: 'enum', 
+  @Column({
+    type: 'enum',
     enum: AvailabilityStatus,
-    comment: 'New availability status'
+    comment: 'New availability status',
   })
   new_status: AvailabilityStatus;
 
-  @Column({ 
-    type: 'varchar', 
-    length: 500, 
+  @Column({
+    type: 'varchar',
+    length: 500,
     nullable: true,
-    comment: 'Reason for status change'
+    comment: 'Reason for status change',
   })
   change_reason?: string;
 
-  @Column({ 
-    type: 'timestamptz', 
+  @Column({
+    type: 'timestamptz',
     nullable: true,
-    comment: 'Expected resolution date for maintenance/damaged items'
+    comment: 'Expected resolution date for maintenance/damaged items',
   })
   expected_resolution_date?: Date;
 
-  @Column({ 
-    type: 'enum', 
+  @Column({
+    type: 'enum',
     enum: StatusChangeType,
     default: StatusChangeType.MANUAL,
-    comment: 'Type of status change (manual or automatic)'
+    comment: 'Type of status change (manual or automatic)',
   })
   change_type: StatusChangeType;
 
-  @Column({ 
-    type: 'varchar', 
-    length: 45, 
+  @Column({
+    type: 'varchar',
+    length: 45,
     nullable: true,
-    comment: 'IP address of the user making the change'
+    comment: 'IP address of the user making the change',
   })
   ip_address?: string;
 
-  @Column({ 
-    type: 'text', 
+  @Column({
+    type: 'text',
     nullable: true,
-    comment: 'User agent string'
+    comment: 'User agent string',
   })
   user_agent?: string;
 

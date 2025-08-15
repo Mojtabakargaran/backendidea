@@ -1,6 +1,14 @@
-import { MigrationInterface, QueryRunner, TableColumn, TableForeignKey, TableIndex } from 'typeorm';
+import {
+  MigrationInterface,
+  QueryRunner,
+  TableColumn,
+  TableForeignKey,
+  TableIndex,
+} from 'typeorm';
 
-export class AddTenantIdToRolePermissions1706100000000 implements MigrationInterface {
+export class AddTenantIdToRolePermissions1706100000000
+  implements MigrationInterface
+{
   name = 'AddTenantIdToRolePermissions1706100000000';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
@@ -11,7 +19,7 @@ export class AddTenantIdToRolePermissions1706100000000 implements MigrationInter
         name: 'tenant_id',
         type: 'uuid',
         isNullable: false,
-      })
+      }),
     );
 
     // Add foreign key constraint for tenant_id
@@ -23,7 +31,7 @@ export class AddTenantIdToRolePermissions1706100000000 implements MigrationInter
         referencedColumnNames: ['id'],
         onDelete: 'CASCADE',
         onUpdate: 'CASCADE',
-      })
+      }),
     );
 
     // Create index for tenant_id
@@ -32,7 +40,7 @@ export class AddTenantIdToRolePermissions1706100000000 implements MigrationInter
       new TableIndex({
         name: 'idx_role_permissions_tenant_id',
         columnNames: ['tenant_id'],
-      })
+      }),
     );
 
     // Update unique constraint to include tenant_id
@@ -65,7 +73,10 @@ export class AddTenantIdToRolePermissions1706100000000 implements MigrationInter
     `);
 
     // Drop index for tenant_id
-    await queryRunner.dropIndex('role_permissions', 'idx_role_permissions_tenant_id');
+    await queryRunner.dropIndex(
+      'role_permissions',
+      'idx_role_permissions_tenant_id',
+    );
 
     // Drop foreign key constraint
     await queryRunner.query(`

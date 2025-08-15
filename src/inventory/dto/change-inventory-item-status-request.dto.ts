@@ -1,5 +1,12 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEnum, IsOptional, IsString, MaxLength, IsDateString, ValidateIf } from 'class-validator';
+import {
+  IsEnum,
+  IsOptional,
+  IsString,
+  MaxLength,
+  IsDateString,
+  ValidateIf,
+} from 'class-validator';
 import { AvailabilityStatus } from '../../common/enums';
 
 export class ChangeInventoryItemStatusRequestDto {
@@ -29,7 +36,12 @@ export class ChangeInventoryItemStatusRequestDto {
     required: false,
   })
   @IsOptional()
-  @ValidateIf((o) => o.expectedResolutionDate !== '' && o.expectedResolutionDate != null)
-  @IsDateString({}, { message: 'expectedResolutionDate must be a valid ISO 8601 date string' })
+  @ValidateIf(
+    (o) => o.expectedResolutionDate !== '' && o.expectedResolutionDate != null,
+  )
+  @IsDateString(
+    {},
+    { message: 'expectedResolutionDate must be a valid ISO 8601 date string' },
+  )
   expectedResolutionDate?: string;
 }

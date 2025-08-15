@@ -39,81 +39,81 @@ export class InventoryBulkOperation {
   @Column({ type: 'uuid' })
   initiated_by: string;
 
-  @Column({ 
-    type: 'enum', 
+  @Column({
+    type: 'enum',
     enum: BulkOperationType,
-    comment: 'Type of bulk operation being performed'
+    comment: 'Type of bulk operation being performed',
   })
   operation_type: BulkOperationType;
 
-  @Column({ 
+  @Column({
     type: 'jsonb',
-    comment: 'Array of target item IDs for the operation'
+    comment: 'Array of target item IDs for the operation',
   })
   target_item_ids: string[];
 
-  @Column({ 
+  @Column({
     type: 'jsonb',
-    comment: 'Parameters for the bulk operation'
+    comment: 'Parameters for the bulk operation',
   })
   operation_parameters: Record<string, any>;
 
-  @Column({ 
-    type: 'enum', 
+  @Column({
+    type: 'enum',
     enum: BulkOperationStatus,
     default: BulkOperationStatus.INITIATED,
-    comment: 'Current status of the bulk operation'
+    comment: 'Current status of the bulk operation',
   })
   status: BulkOperationStatus;
 
-  @Column({ 
+  @Column({
     type: 'int',
-    comment: 'Total number of items to process'
+    comment: 'Total number of items to process',
   })
   total_items: number;
 
-  @Column({ 
+  @Column({
     type: 'int',
     default: 0,
-    comment: 'Number of successfully processed items'
+    comment: 'Number of successfully processed items',
   })
   successful_items: number;
 
-  @Column({ 
+  @Column({
     type: 'int',
     default: 0,
-    comment: 'Number of items that failed processing'
+    comment: 'Number of items that failed processing',
   })
   failed_items: number;
 
-  @Column({ 
+  @Column({
     type: 'jsonb',
     nullable: true,
-    comment: 'Details about failed items and reasons'
+    comment: 'Details about failed items and reasons',
   })
   failure_details?: Record<string, any>;
 
-  @Column({ 
+  @Column({
     type: 'varchar',
     length: 45,
-    comment: 'IP address of the user who initiated the operation'
+    comment: 'IP address of the user who initiated the operation',
   })
   ip_address: string;
 
-  @Column({ 
+  @Column({
     type: 'text',
     nullable: true,
-    comment: 'User agent of the client who initiated the operation'
+    comment: 'User agent of the client who initiated the operation',
   })
   user_agent?: string;
 
   @CreateDateColumn({ type: 'timestamptz' })
   created_at: Date;
 
-  @Column({ 
+  @Column({
     type: 'timestamptz',
     nullable: true,
-    comment: 'Timestamp when the operation was completed'
+    comment: 'Timestamp when the operation was completed',
   })
   completed_at?: Date;
 

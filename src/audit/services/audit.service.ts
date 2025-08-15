@@ -86,25 +86,27 @@ export class AuditService {
     // Apply sorting
     const sortBy = query.sortBy || 'createdAt';
     const sortOrder = query.sortOrder || 'desc';
-    
+
     // Map frontend sort fields to database column names
     const sortFieldMap = {
-      'createdAt': 'auditLog.createdAt',
-      'actionType': 'auditLog.action',
-      'status': 'auditLog.status',
-      'actorUserId': 'auditLog.actorUserId',
+      createdAt: 'auditLog.createdAt',
+      actionType: 'auditLog.action',
+      status: 'auditLog.status',
+      actorUserId: 'auditLog.actorUserId',
     };
-    
+
     const dbSortField = sortFieldMap[sortBy] || 'auditLog.createdAt';
     const dbSortOrder = sortOrder.toUpperCase() as 'ASC' | 'DESC';
-    
+
     queryBuilder.orderBy(dbSortField, dbSortOrder);
 
     // Execute query
     const auditLogs = await queryBuilder.getMany();
 
     // Transform to DTOs with translation
-    const auditLogDtos = auditLogs.map(log => this.transformToAuditLogDto(log, acceptLanguage));
+    const auditLogDtos = auditLogs.map((log) =>
+      this.transformToAuditLogDto(log, acceptLanguage),
+    );
 
     // Calculate pagination info
     const totalPages = Math.ceil(totalItems / limit);
@@ -171,11 +173,19 @@ export class AuditService {
 
     // For smaller exports (≤ 1000 records), provide immediate download
     if (estimatedRecordCount <= 1000) {
-      return this.generateImmediateExport(currentUser, exportRequest, estimatedRecordCount);
+      return this.generateImmediateExport(
+        currentUser,
+        exportRequest,
+        estimatedRecordCount,
+      );
     }
 
     // For larger exports, initiate async processing
-    return this.initiateAsyncExport(currentUser, exportRequest, estimatedRecordCount);
+    return this.initiateAsyncExport(
+      currentUser,
+      exportRequest,
+      estimatedRecordCount,
+    );
   }
 
   /**
@@ -186,22 +196,25 @@ export class AuditService {
     exportRequest: ExportAuditRequestDto,
     recordCount: number,
   ): Promise<ExportAuditDataDto> {
-    const userRole = await this.getUserRole(currentUser.id, currentUser.tenantId);
-    
+    const userRole = await this.getUserRole(
+      currentUser.id,
+      currentUser.tenantId,
+    );
+
     // Get actual audit logs data
     const query = this.buildAuditLogsQuery(
       currentUser.tenantId,
       userRole,
       exportRequest,
     );
-    
+
     const auditLogs = await query.getMany();
-    
+
     // Generate file content based on format
     let fileContent: string;
     let contentType: string;
     let fileExtension: string;
-    
+
     switch (exportRequest.exportFormat) {
       case ExportFormat.CSV:
         fileContent = this.generateCSVContent(auditLogs);
@@ -227,12 +240,16 @@ export class AuditService {
     auditExport.exportFormat = exportRequest.exportFormat;
     auditExport.status = ExportStatus.COMPLETED;
     auditExport.filtersApplied = this.buildFiltersObject(exportRequest);
-    auditExport.dateRangeStart = exportRequest.dateFrom ? new Date(exportRequest.dateFrom) : undefined;
-    auditExport.dateRangeEnd = exportRequest.dateTo ? new Date(exportRequest.dateTo) : undefined;
+    auditExport.dateRangeStart = exportRequest.dateFrom
+      ? new Date(exportRequest.dateFrom)
+      : undefined;
+    auditExport.dateRangeEnd = exportRequest.dateTo
+      ? new Date(exportRequest.dateTo)
+      : undefined;
     auditExport.recordCount = recordCount;
     auditExport.expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
     auditExport.completedAt = new Date();
-    
+
     const savedExport = await this.auditExportRepository.save(auditExport);
 
     // Log the export
@@ -314,17 +331,17 @@ export class AuditService {
       'ID',
       'Timestamp',
       'Actor Name',
-      'Actor Email', 
+      'Actor Email',
       'Target Name',
       'Target Email',
       'Action',
       'Status',
       'Description',
       'IP Address',
-      'User Agent'
+      'User Agent',
     ];
 
-    const rows = auditLogs.map(log => [
+    const rows = auditLogs.map((log) => [
       log.id,
       log.createdAt.toISOString(),
       log.actorUser?.fullName || '',
@@ -335,7 +352,7 @@ export class AuditService {
       log.status,
       log.details || '',
       log.ipAddress || '',
-      log.userAgent || ''
+      log.userAgent || '',
     ]);
 
     // Escape CSV fields properly
@@ -348,7 +365,9 @@ export class AuditService {
 
     const csvContent = [
       headers.map(escapeCsvField).join(','),
-      ...rows.map(row => row.map(field => escapeCsvField(String(field || ''))).join(','))
+      ...rows.map((row) =>
+        row.map((field) => escapeCsvField(String(field || ''))).join(','),
+      ),
     ].join('\n');
 
     return csvContent;
@@ -358,17 +377,19 @@ export class AuditService {
    * Generate JSON content from audit logs
    */
   private generateJSONContent(auditLogs: AuditLog[]): string {
-    const data = auditLogs.map(log => ({
+    const data = auditLogs.map((log) => ({
       id: log.id,
       timestamp: log.createdAt.toISOString(),
       actor: {
         name: log.actorUser?.fullName || null,
         email: log.actorUser?.email || null,
       },
-      target: log.targetUser ? {
-        name: log.targetUser.fullName,
-        email: log.targetUser.email,
-      } : null,
+      target: log.targetUser
+        ? {
+            name: log.targetUser.fullName,
+            email: log.targetUser.email,
+          }
+        : null,
       action: log.action,
       status: log.status,
       description: log.details || null,
@@ -382,10 +403,13 @@ export class AuditService {
   /**
    * Download export file by ID
    */
-  async downloadExport(exportId: string, currentUser: User): Promise<{ content: string; filename: string; contentType: string }> {
+  async downloadExport(
+    exportId: string,
+    currentUser: User,
+  ): Promise<{ content: string; filename: string; contentType: string }> {
     // Find the export record
     const exportRecord = await this.auditExportRepository.findOne({
-      where: { id: exportId, tenantId: currentUser.tenantId }
+      where: { id: exportId, tenantId: currentUser.tenantId },
     });
 
     if (!exportRecord) {
@@ -403,13 +427,16 @@ export class AuditService {
     }
 
     // Get user role to rebuild query
-    const userRole = await this.getUserRole(currentUser.id, currentUser.tenantId);
-    
+    const userRole = await this.getUserRole(
+      currentUser.id,
+      currentUser.tenantId,
+    );
+
     // Rebuild filters from stored data
     const filters = exportRecord.filtersApplied as any;
     const exportRequest: ExportAuditRequestDto = {
       exportFormat: exportRecord.exportFormat,
-      ...filters
+      ...filters,
     };
 
     // Get audit logs data
@@ -418,14 +445,14 @@ export class AuditService {
       userRole,
       exportRequest,
     );
-    
+
     const auditLogs = await query.getMany();
-    
+
     // Generate file content
     let content: string;
     let contentType: string;
     let fileExtension: string;
-    
+
     switch (exportRecord.exportFormat) {
       case ExportFormat.CSV:
         content = this.generateCSVContent(auditLogs);
@@ -487,8 +514,12 @@ export class AuditService {
     if (filters.userId) {
       // Support both UUID and username/email search
       const userId = filters.userId.trim();
-      
-      if (userId.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
+
+      if (
+        userId.match(
+          /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i,
+        )
+      ) {
         // It's a UUID, search by actual user ID
         queryBuilder.andWhere(
           '(auditLog.actorUserId = :userId OR auditLog.targetUserId = :userId)',
@@ -552,11 +583,17 @@ export class AuditService {
   /**
    * Transform audit log entity to DTO
    */
-  private transformToAuditLogDto(auditLog: AuditLog, language?: string): AuditLogDataDto {
+  private transformToAuditLogDto(
+    auditLog: AuditLog,
+    language?: string,
+  ): AuditLogDataDto {
     // Get translated action type
     const actionTypeKey = `audit.actions.${auditLog.action}`;
-    const translatedActionType = this.i18nService.translate(actionTypeKey, language).message;
-    
+    const translatedActionType = this.i18nService.translate(
+      actionTypeKey,
+      language,
+    ).message;
+
     return {
       id: auditLog.id,
       tenantId: auditLog.tenantId,
@@ -567,11 +604,13 @@ export class AuditService {
         email: auditLog.actorUser?.email || 'unknown@example.com',
       },
       targetUserId: auditLog.targetUserId,
-      target: auditLog.targetUser ? {
-        id: auditLog.targetUserId!,
-        fullName: auditLog.targetUser.fullName,
-        email: auditLog.targetUser.email,
-      } : undefined,
+      target: auditLog.targetUser
+        ? {
+            id: auditLog.targetUserId!,
+            fullName: auditLog.targetUser.fullName,
+            email: auditLog.targetUser.email,
+          }
+        : undefined,
       actionType: translatedActionType,
       rawActionType: auditLog.action, // Keep raw action for filtering
       description: auditLog.details || '',

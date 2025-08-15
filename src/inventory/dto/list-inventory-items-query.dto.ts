@@ -1,7 +1,19 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsOptional, IsString, IsUUID, IsEnum, IsNumber, Min, Max } from 'class-validator';
+import {
+  IsOptional,
+  IsString,
+  IsUUID,
+  IsEnum,
+  IsNumber,
+  Min,
+  Max,
+} from 'class-validator';
 import { Transform, Type } from 'class-transformer';
-import { ItemType, AvailabilityStatus, InventoryItemStatus } from '../../common/enums';
+import {
+  ItemType,
+  AvailabilityStatus,
+  InventoryItemStatus,
+} from '../../common/enums';
 
 export class ListInventoryItemsQueryDto {
   @ApiProperty({

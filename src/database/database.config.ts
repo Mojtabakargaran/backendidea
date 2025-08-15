@@ -39,23 +39,23 @@ export const ALL_ENTITIES = [
   User,
   Role,
   UserRole,
-  
+
   // Authentication entities
   EmailVerification,
   UserSession,
   LoginAttempt,
   PasswordResetToken,
-  
+
   // Audit and permissions entities
   AuditLog,
   AuditExport,
   Permission,
   RolePermission,
   PermissionCheck,
-  
+
   // Category management entities (?)
   Category,
-  
+
   // Inventory management entities (?)
   InventoryItem,
   InventoryItemStatusChange,
@@ -65,7 +65,7 @@ export const ALL_ENTITIES = [
   // TODO: Add future entities here when implementing new features
   // Examples:
   // - Rental entities (?-?)
-  // - Customer entities 
+  // - Customer entities
   // - Payment entities
   // - Maintenance entities
 ];

@@ -5,9 +5,14 @@ export class GenerateSerialNumberResponseDto {
   @ApiProperty({
     description: 'Response code indicating the result of the generation',
     example: MessageKeys.SERIAL_NUMBER_GENERATED,
-    enum: [MessageKeys.SERIAL_NUMBER_GENERATED, MessageKeys.SERIAL_NUMBER_GENERATION_FAILED],
+    enum: [
+      MessageKeys.SERIAL_NUMBER_GENERATED,
+      MessageKeys.SERIAL_NUMBER_GENERATION_FAILED,
+    ],
   })
-  code: typeof MessageKeys.SERIAL_NUMBER_GENERATED | typeof MessageKeys.SERIAL_NUMBER_GENERATION_FAILED;
+  code:
+    | typeof MessageKeys.SERIAL_NUMBER_GENERATED
+    | typeof MessageKeys.SERIAL_NUMBER_GENERATION_FAILED;
 
   @ApiProperty({
     description: 'Human-readable message in the requested language',

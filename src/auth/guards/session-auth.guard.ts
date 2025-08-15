@@ -104,7 +104,7 @@ export class SessionAuthGuard implements CanActivate {
       }
 
       // Get user's active role
-      const activeUserRole = user.userRoles?.find(ur => ur.isActive);
+      const activeUserRole = user.userRoles?.find((ur) => ur.isActive);
       if (!activeUserRole?.role) {
         this.logger.error(`No active role found for user: ${user.id}`);
         throw new ForbiddenException({

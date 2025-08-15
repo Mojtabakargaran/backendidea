@@ -1,4 +1,9 @@
-import { Injectable, CanActivate, ExecutionContext, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  CanActivate,
+  ExecutionContext,
+  ForbiddenException,
+} from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { PermissionsService } from './permissions.service';
 import { MessageKeys } from '../common/message-keys';
@@ -11,12 +16,15 @@ export class PermissionsGuard implements CanActivate {
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const requiredPermission = this.reflector.get<string>('permission', context.getHandler());
+    const requiredPermission = this.reflector.get<string>(
+      'permission',
+      context.getHandler(),
+    );
     if (!requiredPermission) return true;
-    
+
     const request = context.switchToHttp().getRequest();
     const user = request.user;
-    
+
     if (!user || !user.id || !user.tenantId) {
       throw new ForbiddenException({
         code: MessageKeys.CATEGORY_PERMISSION_DENIED,
@@ -36,7 +44,7 @@ export class PermissionsGuard implements CanActivate {
         message: 'Permission denied',
       });
     }
-    
+
     return true;
   }
 }

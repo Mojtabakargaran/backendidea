@@ -21,11 +21,11 @@ import { I18nModule } from '../i18n/i18n.module';
 @Module({
   imports: [
     TypeOrmModule.forFeature([
-      Category, 
+      Category,
       AuditLog,
       InventoryItem,
-      UserSession, 
-      User, 
+      UserSession,
+      User,
       Tenant,
       Permission,
       RolePermission,
@@ -37,11 +37,7 @@ import { I18nModule } from '../i18n/i18n.module';
     I18nModule,
   ],
   controllers: [CategoriesController],
-  providers: [
-    CategoriesService,
-    PermissionsService,
-    PermissionsGuard,
-  ],
+  providers: [CategoriesService, PermissionsService, PermissionsGuard],
   exports: [CategoriesService],
 })
 export class CategoriesModule {}

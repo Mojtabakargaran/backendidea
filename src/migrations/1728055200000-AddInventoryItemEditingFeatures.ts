@@ -1,6 +1,14 @@
-import { MigrationInterface, QueryRunner, TableColumn, Table, TableIndex } from 'typeorm';
+import {
+  MigrationInterface,
+  QueryRunner,
+  TableColumn,
+  Table,
+  TableIndex,
+} from 'typeorm';
 
-export class AddInventoryItemEditingFeatures1728055200000 implements MigrationInterface {
+export class AddInventoryItemEditingFeatures1728055200000
+  implements MigrationInterface
+{
   name = 'AddInventoryItemEditingFeatures1728055200000';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
@@ -168,9 +176,18 @@ export class AddInventoryItemEditingFeatures1728055200000 implements MigrationIn
 
   public async down(queryRunner: QueryRunner): Promise<void> {
     // Drop indexes first
-    await queryRunner.dropIndex('inventory_item_status_changes', 'idx_inventory_item_status_changes_changed_by');
-    await queryRunner.dropIndex('inventory_item_status_changes', 'idx_inventory_item_status_changes_tenant_id');
-    await queryRunner.dropIndex('inventory_item_status_changes', 'idx_inventory_item_status_changes_item_id_created_at');
+    await queryRunner.dropIndex(
+      'inventory_item_status_changes',
+      'idx_inventory_item_status_changes_changed_by',
+    );
+    await queryRunner.dropIndex(
+      'inventory_item_status_changes',
+      'idx_inventory_item_status_changes_tenant_id',
+    );
+    await queryRunner.dropIndex(
+      'inventory_item_status_changes',
+      'idx_inventory_item_status_changes_item_id_created_at',
+    );
 
     // Drop the status changes table
     await queryRunner.dropTable('inventory_item_status_changes');

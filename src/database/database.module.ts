@@ -5,6 +5,8 @@ import { ALL_ENTITIES } from './database.config';
 import { Role } from '@/entities/role.entity';
 import { Permission } from '@/entities/permission.entity';
 import { RolePermission } from '@/entities/role-permission.entity';
+import { Category } from '@/entities/category.entity';
+import { InventoryItem } from '@/entities/inventory-item.entity';
 
 /**
  * Database Module
@@ -12,7 +14,15 @@ import { RolePermission } from '@/entities/role-permission.entity';
  * Centralized database configuration and entity management
  */
 @Module({
-  imports: [TypeOrmModule.forFeature([Role, Permission, RolePermission])],
+  imports: [
+    TypeOrmModule.forFeature([
+      Role,
+      Permission,
+      RolePermission,
+      Category,
+      InventoryItem,
+    ]),
+  ],
   providers: [DatabaseSeederService],
   exports: [DatabaseSeederService],
 })

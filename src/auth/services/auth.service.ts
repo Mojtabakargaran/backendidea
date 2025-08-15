@@ -182,12 +182,46 @@ export class AuthService {
 
     // After transaction is committed, seed default permissions for the new tenant
     try {
-      await this.databaseSeederService.seedTenantRolePermissions(result.tenant.id);
-      this.logger.log(`Default permissions seeded for tenant: ${result.tenant.id}`);
+      await this.databaseSeederService.seedTenantRolePermissions(
+        result.tenant.id,
+      );
+      this.logger.log(
+        `Default permissions seeded for tenant: ${result.tenant.id}`,
+      );
     } catch (permissionError) {
       this.logger.error(
         'Failed to seed tenant permissions, but registration was successful',
         permissionError,
+      );
+      // Don't throw error - registration was successful
+    }
+
+    // After permission seeding, seed categories and inventory items for the new tenant
+    try {
+      this.logger.log(
+        `Starting categories and inventory seeding for tenant: ${result.tenant.id}, language: ${result.tenant.language}`,
+      );
+
+      // Seed categories first
+      const categories = await this.databaseSeederService.seedTenantCategories(
+        result.tenant.id,
+        result.tenant.language,
+      );
+      this.logger.log(
+        `Categories seeded for tenant: ${result.tenant.id}, count: ${categories.length}`,
+      );
+
+      // Then seed inventory items
+      await this.databaseSeederService.seedTenantInventoryItems(
+        result.tenant.id,
+        result.tenant.language,
+        categories,
+      );
+      this.logger.log(`Inventory items seeded for tenant: ${result.tenant.id}`);
+    } catch (seedingError) {
+      this.logger.error(
+        'Failed to seed tenant categories/inventory, but registration was successful',
+        seedingError,
       );
       // Don't throw error - registration was successful
     }
@@ -529,12 +563,12 @@ export class AuthService {
           MessageKeys.PASSWORD_RESET_REQUIRED,
           acceptLanguage,
         );
-        
+
         // Create a temporary session for the mandatory password change flow
         const sessionToken = crypto.randomBytes(32).toString('hex');
         const sessionExpiresAt = new Date();
         sessionExpiresAt.setHours(sessionExpiresAt.getHours() + 1); // 1 hour for password change
-        
+
         // Create session record for password reset flow
         const session = this.userSessionRepository.create({
           userId: user.id,
@@ -548,7 +582,7 @@ export class AuthService {
           loginMethod: 'password_reset', // Use password_reset method for temp sessions
         });
         await this.userSessionRepository.save(session);
-        
+
         // Return successful response with mandatory password change flag
         return {
           code: MessageKeys.PASSWORD_RESET_REQUIRED,
@@ -930,7 +964,9 @@ export class AuthService {
       updateData.lockedUntil = new Date(
         Date.now() + this.LOCKOUT_DURATION_HOURS * 60 * 60 * 1000,
       );
-      updateData.lockReason = this.i18nService.translate(MessageKeys.ACCOUNT_LOCKED_REASON).message;
+      updateData.lockReason = this.i18nService.translate(
+        MessageKeys.ACCOUNT_LOCKED_REASON,
+      ).message;
 
       this.logger.warn(`Account locked due to failed attempts: ${user.email}`);
     }

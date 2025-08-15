@@ -53,27 +53,41 @@ export class ProfileService {
     const activityTypeMap: Record<string, string> = {
       [AuditAction.ACTIVITY_VIEWED]: MessageKeys.ACTIVITY_TYPE_ACTIVITY_VIEWED,
       [AuditAction.PROFILE_VIEWED]: MessageKeys.ACTIVITY_TYPE_PROFILE_VIEWED,
-      [AuditAction.INVENTORY_LIST_VIEWED]: MessageKeys.ACTIVITY_TYPE_INVENTORY_LIST_VIEWED,
+      [AuditAction.INVENTORY_LIST_VIEWED]:
+        MessageKeys.ACTIVITY_TYPE_INVENTORY_LIST_VIEWED,
       [AuditAction.LOGIN_SUCCESS]: MessageKeys.ACTIVITY_TYPE_LOGIN_SUCCESS,
       [AuditAction.LOGIN_FAILED]: MessageKeys.ACTIVITY_TYPE_LOGIN_FAILED,
       [AuditAction.LOGOUT]: MessageKeys.ACTIVITY_TYPE_LOGOUT,
-      [AuditAction.PASSWORD_CHANGED]: MessageKeys.ACTIVITY_TYPE_PASSWORD_CHANGED,
+      [AuditAction.PASSWORD_CHANGED]:
+        MessageKeys.ACTIVITY_TYPE_PASSWORD_CHANGED,
       [AuditAction.PROFILE_UPDATED]: MessageKeys.ACTIVITY_TYPE_PROFILE_UPDATED,
       [AuditAction.USER_CREATED]: MessageKeys.ACTIVITY_TYPE_USER_CREATED,
       [AuditAction.USER_UPDATED]: MessageKeys.ACTIVITY_TYPE_USER_UPDATED,
       [AuditAction.USER_DELETED]: MessageKeys.ACTIVITY_TYPE_USER_DELETED,
-      [AuditAction.USER_STATUS_CHANGED]: MessageKeys.ACTIVITY_TYPE_USER_STATUS_CHANGED,
-      [AuditAction.USER_ROLE_CHANGED]: MessageKeys.ACTIVITY_TYPE_USER_ROLE_CHANGED,
-      [AuditAction.CATEGORY_CREATED]: MessageKeys.ACTIVITY_TYPE_CATEGORY_CREATED,
-      [AuditAction.CATEGORY_UPDATED]: MessageKeys.ACTIVITY_TYPE_CATEGORY_UPDATED,
-      [AuditAction.CATEGORY_DELETED]: MessageKeys.ACTIVITY_TYPE_CATEGORY_DELETED,
-      [AuditAction.INVENTORY_ITEM_CREATED]: MessageKeys.ACTIVITY_TYPE_INVENTORY_ITEM_CREATED,
-      [AuditAction.INVENTORY_ITEM_UPDATED]: MessageKeys.ACTIVITY_TYPE_INVENTORY_ITEM_UPDATED,
-      [AuditAction.INVENTORY_ITEM_DELETED]: MessageKeys.ACTIVITY_TYPE_INVENTORY_ITEM_DELETED,
-      [AuditAction.INVENTORY_ITEM_VIEWED]: MessageKeys.ACTIVITY_TYPE_INVENTORY_ITEM_VIEWED,
-      [AuditAction.AUDIT_LOGS_VIEWED]: MessageKeys.ACTIVITY_TYPE_AUDIT_LOGS_VIEWED,
-      [AuditAction.PERMISSION_GRANTED]: MessageKeys.ACTIVITY_TYPE_PERMISSION_GRANTED,
-      [AuditAction.PERMISSION_DENIED]: MessageKeys.ACTIVITY_TYPE_PERMISSION_DENIED,
+      [AuditAction.USER_STATUS_CHANGED]:
+        MessageKeys.ACTIVITY_TYPE_USER_STATUS_CHANGED,
+      [AuditAction.USER_ROLE_CHANGED]:
+        MessageKeys.ACTIVITY_TYPE_USER_ROLE_CHANGED,
+      [AuditAction.CATEGORY_CREATED]:
+        MessageKeys.ACTIVITY_TYPE_CATEGORY_CREATED,
+      [AuditAction.CATEGORY_UPDATED]:
+        MessageKeys.ACTIVITY_TYPE_CATEGORY_UPDATED,
+      [AuditAction.CATEGORY_DELETED]:
+        MessageKeys.ACTIVITY_TYPE_CATEGORY_DELETED,
+      [AuditAction.INVENTORY_ITEM_CREATED]:
+        MessageKeys.ACTIVITY_TYPE_INVENTORY_ITEM_CREATED,
+      [AuditAction.INVENTORY_ITEM_UPDATED]:
+        MessageKeys.ACTIVITY_TYPE_INVENTORY_ITEM_UPDATED,
+      [AuditAction.INVENTORY_ITEM_DELETED]:
+        MessageKeys.ACTIVITY_TYPE_INVENTORY_ITEM_DELETED,
+      [AuditAction.INVENTORY_ITEM_VIEWED]:
+        MessageKeys.ACTIVITY_TYPE_INVENTORY_ITEM_VIEWED,
+      [AuditAction.AUDIT_LOGS_VIEWED]:
+        MessageKeys.ACTIVITY_TYPE_AUDIT_LOGS_VIEWED,
+      [AuditAction.PERMISSION_GRANTED]:
+        MessageKeys.ACTIVITY_TYPE_PERMISSION_GRANTED,
+      [AuditAction.PERMISSION_DENIED]:
+        MessageKeys.ACTIVITY_TYPE_PERMISSION_DENIED,
     };
 
     return activityTypeMap[activityType] || activityType; // Fallback to original if not found
@@ -700,9 +714,12 @@ export class ProfileService {
       const activityRecords = activities.map((activity) => {
         // Get the message key for this activity type
         const messageKey = this.getActivityTypeMessageKey(activity.action);
-        
+
         // Translate the activity type
-        const translatedType = this.i18nService.translate(messageKey, language).message;
+        const translatedType = this.i18nService.translate(
+          messageKey,
+          language,
+        ).message;
 
         return {
           type: translatedType,

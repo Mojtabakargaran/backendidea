@@ -43,7 +43,8 @@ export class UpdateSerializedItemDataDto {
   serialNumberChanged: boolean;
 
   @ApiProperty({
-    description: 'Whether historical link was maintained for serial number change',
+    description:
+      'Whether historical link was maintained for serial number change',
     example: true,
   })
   historicalLinkMaintained: boolean;

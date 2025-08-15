@@ -122,7 +122,9 @@ export class UsersService {
         roleId: createUserDto.roleId,
         tenantId,
         assignedBy: actorUserId,
-        assignedReason: this.i18nService.translate(MessageKeys.USER_CREATION_ASSIGNMENT).message,
+        assignedReason: this.i18nService.translate(
+          MessageKeys.USER_CREATION_ASSIGNMENT,
+        ).message,
         isActive: true,
       });
 
@@ -456,7 +458,7 @@ export class UsersService {
   ): Promise<void> {
     const repository = manager || this.auditLogRepository;
 
-    const auditLog = repository.metadata 
+    const auditLog = repository.metadata
       ? repository.create({
           tenantId,
           actorUserId,
@@ -778,7 +780,7 @@ export class UsersService {
           }
 
           // Check if there's an existing role assignment for the target role (active or inactive)
-          let existingRoleAssignment = await queryRunner.manager.findOne(
+          const existingRoleAssignment = await queryRunner.manager.findOne(
             UserRole,
             {
               where: {
@@ -818,7 +820,10 @@ export class UsersService {
 
       // Save user changes - remove relations to avoid stale data issues
       const { userRoles, ...userWithoutRelations } = targetUser;
-      const updatedUser = await queryRunner.manager.save(User, userWithoutRelations);
+      const updatedUser = await queryRunner.manager.save(
+        User,
+        userWithoutRelations,
+      );
 
       // Log audit entries for each type of change
       await this.logUserUpdateAudit(
@@ -1680,8 +1685,10 @@ export class UsersService {
       }
 
       // Get actor and target user roles (find active role)
-      const actorRole = actorUser.userRoles?.find(ur => ur.isActive)?.role?.name;
-      const targetRole = targetUser.userRoles?.find(ur => ur.isActive)?.role?.name;
+      const actorRole = actorUser.userRoles?.find((ur) => ur.isActive)?.role
+        ?.name;
+      const targetRole = targetUser.userRoles?.find((ur) => ur.isActive)?.role
+        ?.name;
 
       // BR01: Permission hierarchy validation
       if (!this.canChangeUserStatus(actorRole, targetRole)) {
@@ -1890,7 +1897,10 @@ export class UsersService {
   /**
    * Validate if actor can change target user status based on role hierarchy
    */
-  private canChangeUserStatus(actorRole: string | undefined, targetRole: string | undefined): boolean {
+  private canChangeUserStatus(
+    actorRole: string | undefined,
+    targetRole: string | undefined,
+  ): boolean {
     // If either role is undefined, deny access
     if (!actorRole || !targetRole) {
       return false;

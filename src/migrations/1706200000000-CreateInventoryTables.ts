@@ -157,13 +157,17 @@ export class CreateInventoryTables1706200000000 implements MigrationInterface {
 
     // Drop indexes
     await queryRunner.query(`DROP INDEX "IDX_inventory_items_status"`);
-    await queryRunner.query(`DROP INDEX "IDX_inventory_items_availability_status"`);
+    await queryRunner.query(
+      `DROP INDEX "IDX_inventory_items_availability_status"`,
+    );
     await queryRunner.query(`DROP INDEX "IDX_inventory_items_item_type"`);
     await queryRunner.query(`DROP INDEX "IDX_inventory_items_category_id"`);
     await queryRunner.query(`DROP INDEX "IDX_inventory_items_tenant_id"`);
     await queryRunner.query(`DROP INDEX "IDX_inventory_items_tenant_serial"`);
     await queryRunner.query(`DROP INDEX "IDX_inventory_items_tenant_name"`);
-    await queryRunner.query(`DROP INDEX "IDX_serial_number_sequences_active_tenant"`);
+    await queryRunner.query(
+      `DROP INDEX "IDX_serial_number_sequences_active_tenant"`,
+    );
 
     // Drop tables
     await queryRunner.query(`DROP TABLE "inventory_items"`);

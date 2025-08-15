@@ -1,5 +1,13 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEnum, IsOptional, IsArray, IsUUID, IsObject, IsBoolean, IsDateString } from 'class-validator';
+import {
+  IsEnum,
+  IsOptional,
+  IsArray,
+  IsUUID,
+  IsObject,
+  IsBoolean,
+  IsDateString,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 import { ExportFormat, ExportType } from '../../common/enums';
 
@@ -70,11 +78,12 @@ export class ExportInventoryRequestDto {
   exportType: ExportType;
 
   @ApiProperty({
-    description: 'Array of inventory item IDs to export (required for single_item and multiple_items)',
+    description:
+      'Array of inventory item IDs to export (required for single_item and multiple_items)',
     type: [String],
     example: [
       '550e8400-e29b-41d4-a716-446655440000',
-      '550e8400-e29b-41d4-a716-446655440001'
+      '550e8400-e29b-41d4-a716-446655440001',
     ],
     required: false,
   })

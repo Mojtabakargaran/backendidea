@@ -1,5 +1,9 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { ItemType, AvailabilityStatus, InventoryItemStatus } from '../../common/enums';
+import {
+  ItemType,
+  AvailabilityStatus,
+  InventoryItemStatus,
+} from '../../common/enums';
 
 export class InventoryItemDto {
   @ApiProperty({

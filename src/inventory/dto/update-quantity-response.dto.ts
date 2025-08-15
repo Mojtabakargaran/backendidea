@@ -2,7 +2,8 @@ import { ApiProperty } from '@nestjs/swagger';
 
 export class QuantityUpdateImpactDto {
   @ApiProperty({
-    description: 'Change in available quantity (positive = increase, negative = decrease)',
+    description:
+      'Change in available quantity (positive = increase, negative = decrease)',
     example: 15,
   })
   availabilityChange: number;
